@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-derived from COVID19.ipynb
+module to support COVID19.ipynb notebook to fit negative binomial model to
+Johns Hopkins COVID-19 cases and deaths data by country
 """
 
 import pandas as pd
@@ -72,7 +73,7 @@ def projection_df(params, df, cases_growth_rate=0):
     index_list = [pd.Timestamp(d) for d in index_list]
     #reindex df to index_list
     df = df.reindex(index_list)
-    df['cases']=df['cases'].fillna(method='ffill')
+    df['cases']=df['cases'].fillna(method='ffill')   #TODO add growth using cases_growth_rate
     df['deaths']=df['deaths'].fillna(method='ffill')
     df = df.fillna(0.0)
     
@@ -110,11 +111,12 @@ if __name__ == "__main__":
     #country='China'
     #country='US'; lockdown_date = None #'2020-03-22' #NY date
     lockdown_date = None
+    #country='Sweden'
     
     #confirmed cases in time_series_covid19_confirmed_global.csv
     url_c = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
     file_c = 'C:/Users/Mark/Documents/Python/code/time_series_covid19_confirmed_global.csv'
-    read_c = file_c #url_c or local file_c if saved already
+    read_c = url_c #url_c or local file_c if saved already
     if (read_c==file_c):
         print()
         print('NB: TOMORROW REMEMBER TO TURN SOURCE BACK TO URL FROM LOCAL')
@@ -172,10 +174,10 @@ if __name__ == "__main__":
  
 
 
-    #===================================================================fit each day lockdown+6d
+    #===================================================================fit each day
     bounds_tuple = ((0.1,0.99),(0.1,0.9),(1.0,100.0))   #s, p, n
     max_iterations = 50
-    init_params_tuple = (0.5,0.35,7.0)
+    init_params_tuple = (0.8,0.35,10.0)
     
     if pd.isnull(lockdown_date):
         start_loc = 30 #pointless fitting 3 parameters to less than 30 data points
@@ -199,7 +201,7 @@ if __name__ == "__main__":
     #===================================================================
     
 
-    proj_df = projection_df(params=res[0], df=df, cases_growth_rate=0.1)
+    proj_df = projection_df(params=res[0], df=df, cases_growth_rate=0.0)
     
     proj_df['new_deaths'] = proj_df['new_deaths'].replace(0.0, np.nan) #don't plot zero values
     
@@ -208,8 +210,10 @@ if __name__ == "__main__":
     mean = nbinom.mean(n, p) 
     print('mean days to death for those who do not survive =',round(mean,1),'days')
     
-    proj_df[['new_deaths','new_model_deaths']].iloc[30:-60].plot(title=country+' fitted model, log scale for y-axis', logy=True)
-    proj_df[['new_deaths','new_model_deaths']].iloc[30:-60].plot(title=country+' fitted model')
+    proj_df['model_new_deaths'] = proj_df['new_model_deaths'] #a better description
+    
+    proj_df[['new_deaths','model_new_deaths']].iloc[30:-60].plot(title=country+' fitted model, log scale for y-axis', logy=True)
+    proj_df[['new_deaths','model_new_deaths']].iloc[30:-60].plot(title=country+' fitted model')
 
     loc_max = proj_df.loc[ proj_df['new_model_deaths'] == proj_df['new_model_deaths'].max()].index[0]
     print(int(round(proj_df['new_model_deaths'].max(),0)),'max deaths on',loc_max.strftime('%Y-%m-%d'))
