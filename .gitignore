@@ -1,3 +1,7 @@
 *.spyproject*
 *.xls*
 *.pdf*
+*checkpoint.ipynb
+*__pycache__*
+*.csv*
+
