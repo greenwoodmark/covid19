@@ -121,11 +121,12 @@ def fit_survival_negative_binomial(df, ew_halflife_days=50, verbose=True):
     Notes
     =====
     bounds_tuple for (s, p, n) can be adjusted to ensure expected time to death,
-    mu = n*p/(1-p), is within desired range. At present 1 < mu < 60 days
+    mu = n*p/(1-p), is within desired range. At present 2 < mu < 60 days
     
     """
 
-    bounds_tuple = ((0.1,0.99),(0.25,0.75),(5.,20.))   #(s,p,n) bounds in optimiser
+    bounds_tuple = ((0.1,0.99),(0.25,0.75),(6.,20.))   #(s,p,n) bounds in optimiser
+    #bounds_tuple = ((0.1,0.99),(0.1,0.9),(2.,100.))   #investigate effectively unbounded
     max_iterations = 50
     init_params_tuple = (0.8,0.35,10.0)
     
@@ -369,7 +370,7 @@ def compare_new_cases_rate_beta(country_list, last_n_days=10):
     NB: assumes we have already saved latest data to local today using save_data()
 
     """
-    summary_dict = {}        
+    summary_dict = {}
     for country in country_list:
         df = prepare_data(country = country, lockdown_date = None, URLnotfile = False)
         country_df = pd.DataFrame()
@@ -392,24 +393,23 @@ def compare_new_cases_rate_beta(country_list, last_n_days=10):
 #---------------------------------------------------------------------------------
 def compare_new_cases_rate_beta_test(country_list, last_n_days=10):
     """
-
-    returns dict of {country: DataFrame indexed by date of 
-                              fitted model for new_cases_rate for last_n_days}
-    
-    NB: assumes we have already saved latest data to local today using save_data()
-
+    test scenario: 
+    how negative would fitted beta be had new cases stayed constant in absolute terms?
+    RESULT: at 2020-04-28 the fitted beta would be around -2.5%
+            i.e. higher than we are seeing in data
     """
-    summary_dict = {}        
+    summary_dict = {}
     for country in country_list:
         df = prepare_data(country = country, lockdown_date = None, URLnotfile = False)
         country_df = pd.DataFrame()
         for j in range(last_n_days):
             new_cases_df = df[['deaths','cases','new_cases','new_cases_rate']].head(df.shape[0]-j)
             mask = (new_cases_df['new_cases'].cumsum()>=100) #only fit after 100 cases
+            denominator = new_cases_df.loc[~mask,'new_cases'].sum()
             new_cases_df = new_cases_df.loc[mask]
             new_cases_start = new_cases_df.head(3)['new_cases'].mean()
             new_cases_df['new_cases'] = new_cases_start 
-            new_cases_df['cases'] = 100+new_cases_df['new_cases'].cumsum()
+            new_cases_df['cases'] = denominator +new_cases_df['new_cases'].cumsum()
             #test effect of deaths remaining constant at this level
             new_cases_df['new_cases_rate'] = new_cases_df['new_cases'] / (new_cases_df['cases'].shift(1)+1e-10)
             new_cases_df['new_cases_rate'] = new_cases_df['new_cases_rate'].fillna(method='bfill')
@@ -428,13 +428,16 @@ def compare_new_cases_rate_beta_test(country_list, last_n_days=10):
 #________________________________________________________________________________
 if __name__ == "__main__":
     
-    selected_country = 'United Kingdom'  #; lockdown_date = '2020-03-23'
+    original_DPI = plt.rcParams["figure.dpi"]
+    plt.rcParams["figure.dpi"] = 100  #higher DPI plots
+    
+    selected_country = 'United Kingdom'
     #selected_country = 'Italy'
     #selected_country = 'Spain'
     #selected_country = 'US'
     #selected_country = 'Sweden'
     
-    lockdown_date = None #for now we do not only fit beyond lockdown date as we want to check param evolution 
+    lockdown_date = None #for now we do not limit fit to beyond lockdown date
     
     save_data()
     
@@ -454,9 +457,11 @@ if __name__ == "__main__":
     proj_df['new_cases'] = proj_df['new_cases'].replace(0.0, np.nan) #don't plot zero values
     
     
-    #====================== plot cases, deaths to date
+    
+    #======================                          plot cases, deaths to date
     latest_data_date_str = df['latest_data_date'].iloc[0]
-    ax = df[['new_deaths']].iloc[40:].plot(title=selected_country+' published cases and deaths as at '
+    ax = df[['new_deaths']].iloc[40:].plot(title=selected_country
+           +' published daily new cases and deaths as at '
            +latest_data_date_str, figsize=(10,6))
     plt.ylabel('new deaths')
     ax2 = df['new_cases'].iloc[40:].plot(secondary_y=True, ax=ax, 
@@ -469,8 +474,27 @@ if __name__ == "__main__":
     #======================
 
 
-    #====================== evolution of fitted survival rates, s, over past 20 days
-    df['s'].tail(20).plot()
+
+    #======================            last fitted negative binomial parameters
+    mean = round(n*(1-p)/p,1)
+    print(selected_country,'mean time until death', str(round(mean,1))
+             ,' days between positive test result and death')
+    ax=pd.Series(negbin_probabilities[0:20]).plot.bar(figsize=(6,3.75))
+    
+    ax.set_title(selected_country+' negative binomial probabilities for model fit at '
+             +latest_data_date_str,fontsize=9.5) 
+    plt.show()
+    #======================
+
+
+
+    #====================== evolution of fitted survival rates, s, last 20 days
+    survivalrate_Series = df['s'].tail(20)*100 #in percent
+    ax = survivalrate_Series.plot(title='fitted survival rate, s', ylim=(50,100), figsize=(6.25,4))
+    import matplotlib.ticker as mtick
+    ax.yaxis.set_major_formatter(mtick.PercentFormatter())
+    plt.grid()
+    plt.show()
     #======================
 
 
@@ -506,7 +530,6 @@ if __name__ == "__main__":
     #======================
     
     
-    """
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden'] #, 'Germany']
     summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=20)
@@ -518,8 +541,10 @@ if __name__ == "__main__":
     beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
                  'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each Date on x-axis')
     #====================== 
+    
+    '''
 
-    #test
+    #test extent fitted beta parameter would have been negative had new cases stayed constant in absolute terms
     country_list = ['United Kingdom','Italy','Spain','US','Sweden'] #, 'Germany']
     summary_dict2 = compare_new_cases_rate_beta_test(country_list=country_list, last_n_days=20)
     beta_df = pd.DataFrame()
@@ -528,11 +553,8 @@ if __name__ == "__main__":
         beta_df = pd.concat([beta_df,cSeries], axis=1)
     beta_df = beta_df.sort_index()     
     beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
-                 'TEST beta parameter!')
-
-
-
-    """
+                 'TEST beta parameter had new cases stayed constant in absolute terms')
+    '''
     
     
     df['k'] = k
@@ -541,53 +563,64 @@ if __name__ == "__main__":
                                                         project_new_cases_indicator=True)
 
 
-    # +++++++++++++++++++ plot distribution of nbinom lag for 100 new cases today
-    # +++++++++++++++++++ plot distribution of nbinom lag for 100 new cases today
-    # +++++++++++++++++++ plot distribution of nbinom lag for 100 new cases today
-    # +++++++++++++++++++ plot distribution of nbinom lag for 100 new cases today
-
+    #======================  show the mid projection
     plot_df = proj_df[['model_new_deaths']]
     latest_data_date = pd.Timestamp(df['latest_data_date'].iloc[0])
-    mask = (proj_df.index>latest_data_date)  
+    mask = (proj_df.index>latest_data_date)
     plot_df.at[mask,'model_new_cases']= proj_df.loc[mask,'new_cases']
     plot_df.at[~mask,'new_deaths'] = proj_df.loc[~mask,'new_deaths']
     plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
     title_str = selected_country+' model deaths (with projected new cases)'
     ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
-    plt.ylabel('new deaths')
-    ax2 = plot_df[['new_cases','model_new_cases']].iloc[40:].plot(secondary_y=True, ax=ax, color=['black','grey'], linestyle='dotted',label='new_cases')
+    plt.ylabel('daily deaths')
+    ax2 = plot_df[['new_cases','model_new_cases']].iloc[40:].plot(secondary_y=True, ax=ax, 
+                 color=['black','grey'], linestyle='dotted',label='new_cases')
     plt.ylabel('new cases')
-
     h1, l1 = ax.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1+h2, l1+l2, loc = 'best')  #'lower right'
-    
     plt.show()
+    #======================
 
     print()
     current_deaths = int(df['deaths'].iloc[-1])
     accum_deaths = int(proj_df['deaths'].iloc[-1])
-    print('cumulative deaths by',proj_df.index[-1].strftime('%Y-%m-%d'),'of',accum_deaths)
-    print('current deaths of',current_deaths,'being',int(100*current_deaths/accum_deaths),'%')
+    print('cumulative deaths by',proj_df.index[-1].strftime('%Y-%m-%d'),'of',accum_deaths,
+    ', being',int(100*current_deaths/accum_deaths),'% of',current_deaths,'deaths to date')
     print()
 
-    mean = round(n*(1-p)/p,1)
-    print(selected_country,'mean time until death',mean ,'days')
-
-    pd.Series(negbin_probabilities[0:20]).plot.bar(color='darkred',
-             title=selected_country+' negative binomial probabilities, mean '+str(round(mean,1))+' days between positive test result and death')
-     
-    '''
-    Negative binomial distribution describes a sequence of i.i.d. Bernoulli trials, 
-    repeated until a predefined, non-random number of successes occurs.
-    X distributed negative binomial (n,p) gives number of failures until n-th success (so always x+n trials) 
-    '''
     
-    ################################################################
-    # US  - allow negbin model to have higher weights for most recent observations using EWMA
-    # 90% CI: 
-    #   within the range of the model + FITTED parameters
-    #   within the range of the model + range of feasible parameters
-    #   within the range of feasible models
-    ################################################################
+    #90% confidence bounds assuming range between 5th and 95th percentile of residuals
+    if selected_country!='Sweden':
+        threshold_daily_deaths = 100
+    else:
+        threshold_daily_deaths = 20    
+    latest_data_date = proj_df['latest_data_date'].iloc[0]
+    mask = (proj_df['model_new_deaths']>threshold_daily_deaths) & (proj_df.index<=latest_data_date)
+    proj_df.at[mask,'error'] = proj_df.loc[mask,'new_deaths']-proj_df.loc[mask,'model_new_deaths']
+    proj_df.at[mask,'error'] = proj_df.loc[mask,'error'] / proj_df.loc[mask,'model_new_deaths']
+    l_bound, u_bound = np.percentile(proj_df.loc[mask,'error'].values, 
+                                             [5,95], interpolation = 'linear')
+    #rebalance bounds around zero
+    upper_bound = (u_bound- l_bound)/2.
+    lower_bound = (l_bound- u_bound)/2.
+      
     
+    #======================  show 90% confidence bounds
+    plot_df = proj_df[['model_new_deaths']]
+    latest_data_date = pd.Timestamp(df['latest_data_date'].iloc[0])
+    mask = (proj_df.index>latest_data_date)  
+    plot_df.at[mask,'5% bound new_deaths'] = proj_df.loc[mask,'model_new_deaths']*(1+lower_bound)
+    plot_df.at[mask,'95% bound new_deaths'] = proj_df.loc[mask,'model_new_deaths']*(1+upper_bound)
+    plot_df.at[mask,'model_new_cases']= proj_df.loc[mask,'new_cases']
+    plot_df.at[~mask,'new_deaths'] = proj_df.loc[~mask,'new_deaths']
+    plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
+    title_str = selected_country+' model deaths with 90% confidence limits'
+    ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
+    ax.fill_between(plot_df['5% bound new_deaths'].index, plot_df['5% bound new_deaths'], plot_df['95% bound new_deaths'], 
+                    color='orange', alpha=.1)   
+    plt.ylabel('daily deaths')
+    plt.show()
+    #======================
+    
+    plt.rcParams["figure.dpi"] = original_DPI 
