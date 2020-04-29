@@ -580,8 +580,10 @@ if __name__ == "__main__":
     print()
     current_deaths = int(df['deaths'].iloc[-1])
     accum_deaths = int(proj_df['deaths'].iloc[-1])
-    print('cumulative deaths by',proj_df.index[-1].strftime('%Y-%m-%d'),'of',accum_deaths,
-    ', being',int(100*current_deaths/accum_deaths),'% of',current_deaths,'deaths to date')
+
+    title_text='cumulative deaths by '+proj_df.index[-1].strftime('%Y-%m-%d')+' of '+str(accum_deaths)
+    title_text+=', being '+str(int(100*current_deaths/accum_deaths))+'% of '+str(current_deaths)+' deaths to date'
+    print(title_text)
     print()
 
     
@@ -598,8 +600,7 @@ if __name__ == "__main__":
                                              [5,95], interpolation = 'linear')
     #rebalance bounds around zero
     upper_bound = (u_bound- l_bound)/2.
-    lower_bound = (l_bound- u_bound)/2.
-      
+    lower_bound = (l_bound- u_bound)/2.    
     
     #======================  show 90% confidence bounds
     plot_df = proj_df[['model_new_deaths']]
@@ -610,11 +611,14 @@ if __name__ == "__main__":
     plot_df.at[mask,'model_new_cases']= proj_df.loc[mask,'new_cases']
     plot_df.at[~mask,'new_deaths'] = proj_df.loc[~mask,'new_deaths']
     plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
-    title_str = selected_country+' model deaths with 90% confidence limits'
+    title_str = selected_country+' model deaths with 90% confidence limits,'+'\n '+title_text
     ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
     ax.fill_between(plot_df['5% bound new_deaths'].index, plot_df['5% bound new_deaths'], plot_df['95% bound new_deaths'], 
                     color='orange', alpha=.1)   
     plt.ylabel('daily deaths')
+    image_path = pd.datetime.now().date().strftime('%Y%m%d')+'/'
+    image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
+    plt.savefig(image_path+selected_country.upper()+'.png')
     plt.show()
     #======================
     
