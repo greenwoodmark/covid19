@@ -132,13 +132,8 @@ def fit_survival_negative_binomial(df, ew_halflife_days=50, verbose=True):
     
     #=================================================== fit each day
     
-    if pd.isnull(lockdown_date):
-        start_loc = 30 #pointless fitting 3 parameters to less than 30 data points
-        end_loc = df.shape[0]
-    else:    
-        lockdown_loc = df.index.get_loc(lockdown_date)
-        start_loc = lockdown_loc + 6
-        end_loc = df.shape[0]
+    start_loc = 30 #pointless fitting 3 parameters to less than 30 data points
+    end_loc = df.shape[0]
     
     for i in range(start_loc, end_loc):
         fit_df = df.iloc[:i].copy()
@@ -429,7 +424,7 @@ def compare_new_cases_rate_beta_test(country_list, last_n_days=10):
 if __name__ == "__main__":
     
     original_DPI = plt.rcParams["figure.dpi"]
-    plt.rcParams["figure.dpi"] = 100  #higher DPI plots
+    plt.rcParams["figure.dpi"] = 80  #higher DPI plots
     
     selected_country = 'United Kingdom'
     #selected_country = 'Italy'
