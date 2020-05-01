@@ -105,6 +105,16 @@ def prepare_data(country='United Kingdom', lockdown_date = None, URLnotfile = Tr
     df['new_cases_rate'] = df['new_cases'] / (df['cases'].shift(1)+1e-10)
     df.at[df.index[0],'new_cases_rate']=0.0
  
+    negative_rates_list = list(df.loc[df['new_cases_rate']<0].index)
+    negative_rates_list = [d.strftime('%Y-%m-%d') for d in negative_rates_list]
+    if negative_rates_list: #warn
+        print(); print('--------------------------------------------------------------------')
+        print('WARNING: check negative growth in new cases for dates',negative_rates_list)
+        print('         -> new cases and growth rates for these dates have been set to zero')
+        print(); print('--------------------------------------------------------------------')
+        df.at[df['new_cases']<0,'new_cases']=0.0        
+        df.at[df['new_cases_rate']<0,'new_cases_rate']=0.0   
+    
     return df
 
 #---------------------------------------------------------------------------------
@@ -349,7 +359,7 @@ def find_median_halflife_days(new_cases_df, HLD_list = [2,3,4,5,6,7,8,9,10]):
         fit_dict[HLD]={'k': k, 'beta': beta}
     beta_list = [fit_dict[x]['beta'] for x in HLD_list]
     median_beta = np.median(beta_list)
-    median_HLD = [k for k in fit_dict.keys() if fit_dict[k]['beta']==median_beta]
+    median_HLD = [k for k in fit_dict.keys() if abs(fit_dict[k]['beta']-median_beta)<1e-5]
     median_HLD = median_HLD[0]
     median_halflife_days = median_HLD
 
@@ -424,13 +434,15 @@ def compare_new_cases_rate_beta_test(country_list, last_n_days=10):
 if __name__ == "__main__":
     
     original_DPI = plt.rcParams["figure.dpi"]
-    plt.rcParams["figure.dpi"] = 80  #higher DPI plots
+    plt.rcParams["figure.dpi"] = 100  #higher DPI plots
     
     selected_country = 'United Kingdom'
     #selected_country = 'Italy'
     #selected_country = 'Spain'
     #selected_country = 'US'
     #selected_country = 'Sweden'
+    #selected_country = 'Brazil'
+    #selected_country = 'Germany'
     
     lockdown_date = None #for now we do not limit fit to beyond lockdown date
     
@@ -526,7 +538,7 @@ if __name__ == "__main__":
     
     
     #====================== plot evolution of beta parameters across countries
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden'] #, 'Germany']
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
     summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=20)
     beta_df = pd.DataFrame()
     for country in country_list:
@@ -611,10 +623,17 @@ if __name__ == "__main__":
     plot_df.at[mask,'model_new_cases']= proj_df.loc[mask,'new_cases']
     plot_df.at[~mask,'new_deaths'] = proj_df.loc[~mask,'new_deaths']
     plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
+    
     title_str = selected_country+' model deaths with 90% confidence limits,'+'\n '+title_text
     ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
     ax.fill_between(plot_df['5% bound new_deaths'].index, plot_df['5% bound new_deaths'], plot_df['95% bound new_deaths'], 
                     color='orange', alpha=.1)   
+
+    #indicate diminishing confidence in the confidence intervals
+    for x in np.arange(-5,-95,-2):
+        ax.fill_between(plot_df['5% bound new_deaths'].index[x:], plot_df['5% bound new_deaths'].tail(x*-1), plot_df['95% bound new_deaths'].tail(x*-1), 
+                    color='white', alpha=.15)
+#    
     plt.ylabel('daily deaths')
     image_path = pd.datetime.now().date().strftime('%Y%m%d')+'/'
     image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
