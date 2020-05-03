@@ -32,6 +32,18 @@ def save_data(localpath='C:/Users/Mark/Documents/Python/code/covid19/'):
 
 
 #---------------------------------------------------------------------------------
+def investigate_data():
+    """
+    return list of countries in dataset
+    """    
+    #confirmed cases in time_series_covid19_confirmed_global.csv
+    url_c = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
+    df_c = pd.read_csv(url_c)   #global confirmed cases
+    country_list = list(set(df_c['Country/Region']))
+    country_list.sort() 
+    return country_list
+
+#---------------------------------------------------------------------------------
 def prepare_data(country='United Kingdom', lockdown_date = None, URLnotfile = True):
     """
     extract Johns Hopkins COVID-19 cases and deaths data by country from github urls
@@ -435,6 +447,8 @@ if __name__ == "__main__":
     
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
+    image_path = 'latest/'
+    image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
     
     selected_country = 'United Kingdom'
     #selected_country = 'Italy'
@@ -442,7 +456,8 @@ if __name__ == "__main__":
     #selected_country = 'US'
     #selected_country = 'Sweden'
     #selected_country = 'Brazil'
-    #selected_country = 'Germany'
+    selected_country = 'Germany'
+    selected_country = 'France'
     
     lockdown_date = None #for now we do not limit fit to beyond lockdown date
     
@@ -537,17 +552,20 @@ if __name__ == "__main__":
     #======================
     
     
-    #====================== plot evolution of beta parameters across countries
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
-    summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=20)
-    beta_df = pd.DataFrame()
-    for country in country_list:
-        cSeries = summary_dict[country]['beta']; cSeries.name=country
-        beta_df = pd.concat([beta_df,cSeries], axis=1)
-    beta_df = beta_df.sort_index()     
-    beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
-                 'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each Date on x-axis')
-    #====================== 
+    if selected_country=='United Kingdom':
+        #====================== plot evolution of beta parameters across countries
+        country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
+        summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=20)
+        beta_df = pd.DataFrame()
+        for country in country_list:
+            cSeries = summary_dict[country]['beta']; cSeries.name=country
+            beta_df = pd.concat([beta_df,cSeries], axis=1)
+        beta_df = beta_df.sort_index()     
+        plt.savefig(image_path+'compare_beta_new_cases_growth.png')
+        plt= beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
+                     'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each Date on x-axis')
+        plt.savefig(image_path+'compare_beta_new_cases_growth.png')
+        #====================== 
     
     '''
 
@@ -586,6 +604,7 @@ if __name__ == "__main__":
     h1, l1 = ax.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1+h2, l1+l2, loc = 'best')  #'lower right'
+    plt.savefig(image_path+selected_country.upper()+'_cases_deaths'+'.png')
     plt.show()
     #======================
 
@@ -633,12 +652,12 @@ if __name__ == "__main__":
     for x in np.arange(-5,-95,-2):
         ax.fill_between(plot_df['5% bound new_deaths'].index[x:], plot_df['5% bound new_deaths'].tail(x*-1), plot_df['95% bound new_deaths'].tail(x*-1), 
                     color='white', alpha=.15)
-#    
+    
     plt.ylabel('daily deaths')
-    image_path = pd.datetime.now().date().strftime('%Y%m%d')+'/'
-    image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
     plt.savefig(image_path+selected_country.upper()+'.png')
     plt.show()
     #======================
     
     plt.rcParams["figure.dpi"] = original_DPI 
+    print( 'data available for:')
+    print(investigate_data())
