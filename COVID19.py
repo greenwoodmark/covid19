@@ -456,8 +456,8 @@ if __name__ == "__main__":
     #selected_country = 'US'
     #selected_country = 'Sweden'
     #selected_country = 'Brazil'
-    selected_country = 'Germany'
-    selected_country = 'France'
+    #selected_country = 'Germany'
+    #selected_country = 'France'
     
     lockdown_date = None #for now we do not limit fit to beyond lockdown date
     
@@ -561,10 +561,10 @@ if __name__ == "__main__":
             cSeries = summary_dict[country]['beta']; cSeries.name=country
             beta_df = pd.concat([beta_df,cSeries], axis=1)
         beta_df = beta_df.sort_index()     
-        plt.savefig(image_path+'compare_beta_new_cases_growth.png')
-        plt= beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
+        ax = beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
                      'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each Date on x-axis')
         plt.savefig(image_path+'compare_beta_new_cases_growth.png')
+        plt.show()
         #====================== 
     
     '''
