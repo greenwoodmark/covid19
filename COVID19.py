@@ -458,6 +458,7 @@ if __name__ == "__main__":
     #selected_country = 'Brazil'
     #selected_country = 'Germany'
     #selected_country = 'France'
+    selected_country = 'Russia'
     
     lockdown_date = None #for now we do not limit fit to beyond lockdown date
     
