@@ -451,14 +451,15 @@ if __name__ == "__main__":
     image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
     
     selected_country = 'United Kingdom'
-    #selected_country = 'Italy'
-    #selected_country = 'Spain'
-    #selected_country = 'US'
-    #selected_country = 'Sweden'
-    #selected_country = 'Brazil'
-    #selected_country = 'Germany'
-    #selected_country = 'France'
-    selected_country = 'Russia'
+    selected_country = 'Italy'
+    selected_country = 'Spain'
+    selected_country = 'US'
+    selected_country = 'Sweden'
+    selected_country = 'Brazil'
+    selected_country = 'Germany'
+    selected_country = 'France'
+    #selected_country = 'Russia'
+    #selected_country = 'South Africa'
     
     lockdown_date = None #for now we do not limit fit to beyond lockdown date
     
@@ -614,7 +615,7 @@ if __name__ == "__main__":
     accum_deaths = int(proj_df['deaths'].iloc[-1])
 
     title_text='cumulative deaths by '+proj_df.index[-1].strftime('%Y-%m-%d')+' of '+str(accum_deaths)
-    title_text+=', being '+str(int(100*current_deaths/accum_deaths))+'% of '+str(current_deaths)+' deaths to date'
+    title_text+=', deaths to date '+ str(current_deaths)+' = ' +str(int(100*current_deaths/accum_deaths))+'%'
     print(title_text)
     print()
 
