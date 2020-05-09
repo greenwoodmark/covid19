@@ -451,14 +451,13 @@ if __name__ == "__main__":
     image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
     
     selected_country = 'United Kingdom'
-    selected_country = 'Italy'
-    selected_country = 'Spain'
-    selected_country = 'US'
-    selected_country = 'Sweden'
-    selected_country = 'Brazil'
-    selected_country = 'Germany'
-    selected_country = 'France'
-    #selected_country = 'Russia'
+    #selected_country = 'Italy'
+    #selected_country = 'Spain'
+    #selected_country = 'US'
+    #selected_country = 'Sweden'
+    #selected_country = 'Brazil'
+    #selected_country = 'Germany'
+    #selected_country = 'France'
     #selected_country = 'South Africa'
     
     lockdown_date = None #for now we do not limit fit to beyond lockdown date
@@ -468,8 +467,12 @@ if __name__ == "__main__":
     df = prepare_data(country = selected_country, lockdown_date = None, URLnotfile = False)
   
     print(df.tail())
+    
+    ew_halflife_days=20
+    print('ew_halflife_days =',ew_halflife_days)
+    print()
         
-    df = fit_survival_negative_binomial(df.copy(), ew_halflife_days=50, verbose=True)
+    df = fit_survival_negative_binomial(df.copy(), ew_halflife_days=ew_halflife_days, verbose=True)
     s,p,n = tuple(df[['s','p','n']].iloc[-1])   #parameters fitted to latest date row
 
     params = (s,p,n)
