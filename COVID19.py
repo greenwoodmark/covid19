@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats import nbinom
 import matplotlib.pyplot as plt
-
+import sys
 
 #---------------------------------------------------------------------------------
 def ew_halflife(n,halflife):
@@ -451,14 +451,13 @@ if __name__ == "__main__":
     image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
     
     selected_country = 'United Kingdom'
-    #selected_country = 'Italy'
-    #selected_country = 'Spain'
-    #selected_country = 'US'
-    #selected_country = 'Sweden'
-    #selected_country = 'Brazil'
+    selected_country = 'Italy'
+    selected_country = 'Spain'
+    selected_country = 'US'
+    selected_country = 'Sweden'
+    selected_country = 'Brazil'
     #selected_country = 'Germany'
     #selected_country = 'France'
-    #selected_country = 'South Africa'
     
     lockdown_date = None #for now we do not limit fit to beyond lockdown date
     
@@ -611,6 +610,7 @@ if __name__ == "__main__":
     ax.legend(h1+h2, l1+l2, loc = 'best')  #'lower right'
     plt.savefig(image_path+selected_country.upper()+'_cases_deaths'+'.png')
     plt.show()
+
     #======================
 
     print()
@@ -649,6 +649,7 @@ if __name__ == "__main__":
     plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
     
     title_str = selected_country+' model deaths with 90% confidence limits,'+'\n '+title_text
+
     ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
     ax.fill_between(plot_df['5% bound new_deaths'].index, plot_df['5% bound new_deaths'], plot_df['95% bound new_deaths'], 
                     color='orange', alpha=.1)   
