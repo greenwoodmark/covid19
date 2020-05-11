@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats import nbinom
 import matplotlib.pyplot as plt
-import sys
+
 
 #---------------------------------------------------------------------------------
 def ew_halflife(n,halflife):
@@ -378,6 +378,35 @@ def find_median_halflife_days(new_cases_df, HLD_list = [2,3,4,5,6,7,8,9,10]):
     return median_halflife_days, fit_dict
 
 #---------------------------------------------------------------------------------
+def survival_rates_linear_trend(survivalrate_Series, ew_halflife_days):
+    """
+    WLS fit of marginal survival rate from average survival rate series
+    and the pandas exponential weighting halflife used to fit the series
+    """        
+    import statsmodels.api as sm  #use weighted least squares to fit trend in new cases
+    df=pd.DataFrame(survivalrate_Series)
+    alpha = 1-np.exp(np.log(0.5)/ew_halflife_days)
+    df['s_prime'] = df['s']-df['s'].shift(1)
+    df = df.dropna()
+    df['s_prime'] /= alpha
+    df['s'] += df['s_prime']
+    #effect of outliers is attentuated by clipping the marginal rates around 1 std dev
+    lower_limit = survivalrate_Series.mean() - survivalrate_Series.std()
+    upper_limit = survivalrate_Series.mean() + survivalrate_Series.std()
+    df['s'] = df['s'].clip(lower = lower_limit, upper = upper_limit)  #in percent
+    X = np.arange(0,df.shape[0])
+    y = df['s'].values.astype(float)
+    X = sm.add_constant(X)
+    weights = ew_halflife(n=X.shape[0],halflife=ew_halflife_days)
+    wls_new_cases = sm.WLS(y, X, weights)
+    results = wls_new_cases.fit()
+    k = results.params[0]
+    beta = results.params[1]
+    df['marginal_s'] = (np.array([k,beta])*X).sum(axis=1)
+    marginal_survivalrate_Series = df['marginal_s']    
+    return marginal_survivalrate_Series 
+
+#---------------------------------------------------------------------------------
 def compare_new_cases_rate_beta(country_list, last_n_days=10):
     """
 
@@ -451,11 +480,11 @@ if __name__ == "__main__":
     image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
     
     selected_country = 'United Kingdom'
-    selected_country = 'Italy'
-    selected_country = 'Spain'
-    selected_country = 'US'
-    selected_country = 'Sweden'
-    selected_country = 'Brazil'
+    #selected_country = 'Italy'
+    #selected_country = 'Spain'
+    #selected_country = 'US'
+    #selected_country = 'Sweden'
+    #selected_country = 'Brazil'
     #selected_country = 'Germany'
     #selected_country = 'France'
     
@@ -513,13 +542,21 @@ if __name__ == "__main__":
     #======================
 
 
-
     #====================== evolution of fitted survival rates, s, last 20 days
-    survivalrate_Series = df['s'].tail(20)*100 #in percent
-    ax = survivalrate_Series.plot(title='fitted survival rate, s', ylim=(50,100), figsize=(6.25,4))
+    survivalrate_Series = df['s'].dropna()*100 #in percent
+   
+    marginal_survivalrate_Series = survival_rates_linear_trend(survivalrate_Series, 
+                                                               ew_halflife_days)
+    sdf = pd.DataFrame(survivalrate_Series)
+    sdf['marginal_s'] = marginal_survivalrate_Series    
+    ax = sdf[['s','marginal_s']].tail(30).plot(
+            title='fitted and marginal survival rate',
+            ylim=(50,100), 
+            figsize=(8,5.5))
     import matplotlib.ticker as mtick
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
     plt.grid()
+    plt.savefig(image_path+selected_country.upper()+'_survival.png')
     plt.show()
     #======================
 
@@ -610,7 +647,6 @@ if __name__ == "__main__":
     ax.legend(h1+h2, l1+l2, loc = 'best')  #'lower right'
     plt.savefig(image_path+selected_country.upper()+'_cases_deaths'+'.png')
     plt.show()
-
     #======================
 
     print()
@@ -649,7 +685,6 @@ if __name__ == "__main__":
     plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
     
     title_str = selected_country+' model deaths with 90% confidence limits,'+'\n '+title_text
-
     ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
     ax.fill_between(plot_df['5% bound new_deaths'].index, plot_df['5% bound new_deaths'], plot_df['95% bound new_deaths'], 
                     color='orange', alpha=.1)   
