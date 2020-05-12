@@ -147,10 +147,9 @@ def fit_survival_negative_binomial(df, ew_halflife_days=50, verbose=True):
     
     """
 
-    bounds_tuple = ((0.1,0.99),(0.25,0.75),(6.,20.))   #(s,p,n) bounds in optimiser
-    #bounds_tuple = ((0.1,0.99),(0.1,0.9),(2.,100.))   #investigate effectively unbounded
+    bounds_tuple = ((0.1,0.9999),(0.0,0.1),(0.25,0.75),(6.,20.))   #(s,p,n) bounds in optimiser
     max_iterations = 50
-    init_params_tuple = (0.8,0.35,10.0)
+    init_params_tuple = (0.75,0.001,0.4,10.0)
     
     #=================================================== fit each day
     
@@ -165,14 +164,14 @@ def fit_survival_negative_binomial(df, ew_halflife_days=50, verbose=True):
                       hyperparams=fit_df, 
                       bounds=bounds_tuple, 
                       maxiter=max_iterations)
-        s,p,n=res[0]
+        a,b,p,n=res[0]
         mean = nbinom.mean(n, p) #n*p/(1-p) #see scipy\stats\_discrete_distns.py line 210
         if verbose:
             print(df.index[i].strftime('%Y-%m-%d'),'parameters=',res[0],',',
                   round(mean,1),'days to death,', int(res[1]),'error')
         init_params_tuple = res[0]
-        s,p,n = res[0]
-        df.at[df.index[i],'s']=s
+        df.at[df.index[i],'a']=a
+        df.at[df.index[i],'b']=b
         df.at[df.index[i],'p']=p
         df.at[df.index[i],'n']=n
     #===================================================
@@ -185,7 +184,7 @@ def fit_err(params, hyperparams):
     """
     error function used with fitting function fit_model()
     """
-    s,p,n = params
+    a,b,p,n = params    #then s varies with time as a*(1-exp(bt)) 
     df = hyperparams
     
     if 'lockdown' in df.columns:   #may choose to only fit error after this date
@@ -210,10 +209,14 @@ def fit_err(params, hyperparams):
         
     nmd_prob = np.matmul(df['new_cases'].to_numpy().reshape(1,-1).astype(float),
                          pmatrix.astype(float))
-    model_new_deaths = nmd_prob[:,:num_rows] * (1-s)
+    s_array = a + b * np.arange(-1*num_rows+1,1)
+    model_new_deaths = nmd_prob[:,:num_rows] * (1-s_array)
     new_deaths = df['new_deaths'].values.reshape(1,-1).astype(float)    
     error_squared = (new_deaths - model_new_deaths)**2 
-  
+    
+    #penalise negative survival rate at start of fit
+    error_squared += (1e6*min(s_array[0],0))**2 
+    
     if 'weights' in df.columns:  #optional - exponentially weight errors
         weights = df['weights'].values.reshape(1,-1).astype(float)    
         error_squared = error_squared * weights 
@@ -290,25 +293,35 @@ def create_projection_df(params, df, project_new_cases_indicator=0):
     warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
     from scipy.stats import nbinom
 
-    s,p,n = params
+    a,b,p,n = params
     if 'lockdown' in df.columns:
         lockdown_date = df['lockdown'].iloc[0]
         df = df.loc[df.index>=lockdown_date]   #we only fit error after this date
+        
+    #add survival probabilities for dates where they apply
+    mask = (df['new_cases'].cumsum()>100)    
+    df.at[mask,'s'] = a + b * np.arange(-1*df.loc[mask].shape[0]+1,1)
+    #hold survival rates constant in period before 100 cumulative cases
+    df['s']=df['s'].fillna(method='bfill')
 
+    #add another 100 days to index for projecting future cases and deaths
     next_dt = df.index[-1]+pd.DateOffset(1) 
     index_list = list(df.index)+list(pd.date_range(next_dt,periods=100, freq='D').values)
     index_list = [pd.Timestamp(d) for d in index_list]
+
     #reindex df to index_list to add 100 days projected deaths, etc.
     df = df.reindex(index_list)
     df['cases']=df['cases'].fillna(method='ffill')   #TODO add growth using cases_growth_rate
     df['deaths']=df['deaths'].fillna(method='ffill')
+    #survival probabilities for future dates remain constant at current level
+    df['s']=df['s'].fillna(method='ffill')
     df = df.fillna(0.0)
     
     days_limit = df.index.shape[0]  #we limit this to prevent the fitting taking too long
     arr = np.array(range(days_limit))  #we limit analysis to days_limit after infection
     nbpr = lambda x: nbinom.pmf(x, n, p)
     negbin_probabilities = nbpr(arr)
-       
+    
     if project_new_cases_indicator:   #add projection for new cases based on new_cases_rate
         k = df['k'].iloc[0]
         beta = df['beta'].iloc[0]*1
@@ -345,7 +358,9 @@ def create_projection_df(params, df, project_new_cases_indicator=0):
         
     nmd_prob = np.matmul(df['new_cases'].to_numpy().reshape(1,-1).astype(float),
                          pmatrix.astype(float))
-    model_new_deaths = nmd_prob[:,:num_rows] * (1-s)
+    
+    s_array = df['s'].values
+    model_new_deaths = nmd_prob[:,:num_rows] * (1-s_array)
     df['model_new_deaths'] = model_new_deaths.squeeze()
     if project_new_cases_indicator:   #add projection for new cases based on new_cases_rate
         mask = (df.index>latest_data_date)
@@ -376,35 +391,6 @@ def find_median_halflife_days(new_cases_df, HLD_list = [2,3,4,5,6,7,8,9,10]):
     median_halflife_days = median_HLD
 
     return median_halflife_days, fit_dict
-
-#---------------------------------------------------------------------------------
-def survival_rates_linear_trend(survivalrate_Series, ew_halflife_days):
-    """
-    WLS fit of marginal survival rate from average survival rate series
-    and the pandas exponential weighting halflife used to fit the series
-    """        
-    import statsmodels.api as sm  #use weighted least squares to fit trend in new cases
-    df=pd.DataFrame(survivalrate_Series)
-    alpha = 1-np.exp(np.log(0.5)/ew_halflife_days)
-    df['s_prime'] = df['s']-df['s'].shift(1)
-    df = df.dropna()
-    df['s_prime'] /= alpha
-    df['s'] += df['s_prime']
-    #effect of outliers is attentuated by clipping the marginal rates around 1 std dev
-    lower_limit = survivalrate_Series.mean() - survivalrate_Series.std()
-    upper_limit = survivalrate_Series.mean() + survivalrate_Series.std()
-    df['s'] = df['s'].clip(lower = lower_limit, upper = upper_limit)  #in percent
-    X = np.arange(0,df.shape[0])
-    y = df['s'].values.astype(float)
-    X = sm.add_constant(X)
-    weights = ew_halflife(n=X.shape[0],halflife=ew_halflife_days)
-    wls_new_cases = sm.WLS(y, X, weights)
-    results = wls_new_cases.fit()
-    k = results.params[0]
-    beta = results.params[1]
-    df['marginal_s'] = (np.array([k,beta])*X).sum(axis=1)
-    marginal_survivalrate_Series = df['marginal_s']    
-    return marginal_survivalrate_Series 
 
 #---------------------------------------------------------------------------------
 def compare_new_cases_rate_beta(country_list, last_n_days=10):
@@ -501,9 +487,9 @@ if __name__ == "__main__":
     print()
         
     df = fit_survival_negative_binomial(df.copy(), ew_halflife_days=ew_halflife_days, verbose=True)
-    s,p,n = tuple(df[['s','p','n']].iloc[-1])   #parameters fitted to latest date row
+    a,b,p,n = tuple(df[['a','b','p','n']].iloc[-1])   #parameters fitted to latest date row
 
-    params = (s,p,n)
+    params = (a,b,p,n)
 
     proj_df,negbin_probabilities = create_projection_df(params=params, df=df.copy(), 
                                                         project_new_cases_indicator=False)
@@ -542,15 +528,13 @@ if __name__ == "__main__":
     #======================
 
 
-    #====================== evolution of fitted survival rates, s, last 20 days
-    survivalrate_Series = df['s'].dropna()*100 #in percent
+    #====================== evolution of fitted survival rates, s, last 30 days
+    survivalrate_Series = a + b * np.arange(-1*df.shape[0]+1,1)
+    survivalrate_Series = survivalrate_Series*100 #in percent
    
-    marginal_survivalrate_Series = survival_rates_linear_trend(survivalrate_Series, 
-                                                               ew_halflife_days)
-    sdf = pd.DataFrame(survivalrate_Series)
-    sdf['marginal_s'] = marginal_survivalrate_Series    
-    ax = sdf[['s','marginal_s']].tail(30).plot(
-            title='fitted and marginal survival rate',
+    sdf = pd.DataFrame(survivalrate_Series, columns=['s'], index=df.index)
+    ax = sdf[['s']].tail(30).plot(
+            title='fitted survival rate, '+selected_country,
             ylim=(50,100), 
             figsize=(8,5.5))
     import matplotlib.ticker as mtick
@@ -625,7 +609,7 @@ if __name__ == "__main__":
     
     df['k'] = k
     df['beta'] = beta
-    proj_df,negbin_probabilities = create_projection_df(params=(s,p,n), df=df, 
+    proj_df,negbin_probabilities = create_projection_df(params=(a,b,p,n), df=df, 
                                                         project_new_cases_indicator=True)
 
 
