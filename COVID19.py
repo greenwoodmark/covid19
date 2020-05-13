@@ -466,13 +466,13 @@ if __name__ == "__main__":
     image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
     
     selected_country = 'United Kingdom'
-    #selected_country = 'Italy'
-    #selected_country = 'Spain'
-    #selected_country = 'US'
-    #selected_country = 'Sweden'
-    #selected_country = 'Brazil'
-    #selected_country = 'Germany'
-    #selected_country = 'France'
+    selected_country = 'Italy'
+    selected_country = 'Spain'
+    selected_country = 'US'
+    selected_country = 'Sweden'
+    selected_country = 'Brazil'
+    selected_country = 'Germany'
+    selected_country = 'France'  #new cases data very low - is it net of recoveries?
     
     lockdown_date = None #for now we do not limit fit to beyond lockdown date
     
