@@ -143,11 +143,11 @@ def fit_survival_negative_binomial(df, ew_halflife_days=50, verbose=True):
     Notes
     =====
     bounds_tuple for (s, p, n) can be adjusted to ensure expected time to death,
-    mu = n*p/(1-p), is within desired range. At present 2 < mu < 60 days
+    mu = n*p/(1-p), is within desired range. At present 2 < mu < 30 days
     
     """
 
-    bounds_tuple = ((0.1,0.9999),(0.0,0.1),(0.25,0.75),(6.,20.))   #(s,p,n) bounds in optimiser
+    bounds_tuple = ((0.1,0.9999),(0.0,0.1),(0.25,0.75),(6.,10.))   #(s,p,n) bounds in optimiser
     max_iterations = 50
     init_params_tuple = (0.75,0.001,0.4,10.0)
     
@@ -471,8 +471,8 @@ if __name__ == "__main__":
     selected_country = 'US'
     selected_country = 'Sweden'
     selected_country = 'Brazil'
-    selected_country = 'Germany'
-    selected_country = 'France'  #new cases data very low - is it net of recoveries?
+    #selected_country = 'Germany'
+    #selected_country = 'France'  #new cases data very low - is it net of recoveries?
     
     lockdown_date = None #for now we do not limit fit to beyond lockdown date
     
