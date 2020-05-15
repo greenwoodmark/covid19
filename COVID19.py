@@ -147,7 +147,7 @@ def fit_survival_negative_binomial(df, ew_halflife_days=50, verbose=True):
     
     """
 
-    bounds_tuple = ((0.1,0.9999),(0.0,0.1),(0.25,0.75),(6.,10.))   #(s,p,n) bounds in optimiser
+    bounds_tuple = ((0.1,0.98),(0.0,0.1),(0.25,0.75),(6.,10.))   #(s,p,n) bounds in optimiser
     max_iterations = 50
     init_params_tuple = (0.75,0.001,0.4,10.0)
     
