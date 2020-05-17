@@ -471,8 +471,10 @@ if __name__ == "__main__":
     selected_country = 'US'
     selected_country = 'Sweden'
     selected_country = 'Brazil'
-    #selected_country = 'Germany'
-    #selected_country = 'France'  #new cases data very low - is it net of recoveries?
+    selected_country = 'Germany'
+    selected_country = 'France'  #new cases data very low - is it net of recoveries?
+    #selected_country = 'South Africa'
+    
     
     lockdown_date = None #for now we do not limit fit to beyond lockdown date
     
