@@ -456,29 +456,20 @@ def compare_new_cases_rate_beta_test(country_list, last_n_days=10):
     
     return summary_dict
 
+#---------------------------------------------------------------------------------
+def analyse_country(selected_country,image_path):
+    """
+    plots the following for string selected_country...
 
-#________________________________________________________________________________
-if __name__ == "__main__":
-    
-    original_DPI = plt.rcParams["figure.dpi"]
-    plt.rcParams["figure.dpi"] = 100  #higher DPI plots
-    image_path = 'latest/'
-    image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
-    
-    selected_country = 'United Kingdom'
-    selected_country = 'Italy'
-    selected_country = 'Spain'
-    selected_country = 'US'
-    selected_country = 'Sweden'
-    selected_country = 'Brazil'
-    selected_country = 'Germany'
-    selected_country = 'France'  #new cases data very low - is it net of recoveries?
-    #selected_country = 'South Africa'
-    
-    
-    lockdown_date = None #for now we do not limit fit to beyond lockdown date
-    
-    save_data()
+        1) cases, deaths to date;
+        2) latest fitted negative binomial parameters;
+        3) evolution of fitted survival rates in last 30 days;
+        4) new_cases_rate and median fit;
+        5) show the mid projection, cases and deaths; 
+        6) show the mid deaths only projection with 90% confidence bounds
+
+    ...saving the results to image_path
+    """    
     
     df = prepare_data(country = selected_country, lockdown_date = None, URLnotfile = False)
   
@@ -518,7 +509,7 @@ if __name__ == "__main__":
 
 
 
-    #======================            last fitted negative binomial parameters
+    #======================            latest fitted negative binomial parameters
     mean = round(n*(1-p)/p,1)
     print(selected_country,'mean time until death', str(round(mean,1))
              ,' days between positive test result and death')
@@ -577,38 +568,7 @@ if __name__ == "__main__":
     fig.tight_layout()
     plt.show()
     #======================
-    
-    
-    if selected_country=='United Kingdom':
-        #====================== plot evolution of beta parameters across countries
-        country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
-        summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=20)
-        beta_df = pd.DataFrame()
-        for country in country_list:
-            cSeries = summary_dict[country]['beta']; cSeries.name=country
-            beta_df = pd.concat([beta_df,cSeries], axis=1)
-        beta_df = beta_df.sort_index()     
-        ax = beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
-                     'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each Date on x-axis')
-        plt.savefig(image_path+'compare_beta_new_cases_growth.png')
-        plt.show()
-        #====================== 
-    
-    '''
-
-    #test extent fitted beta parameter would have been negative had new cases stayed constant in absolute terms
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden'] #, 'Germany']
-    summary_dict2 = compare_new_cases_rate_beta_test(country_list=country_list, last_n_days=20)
-    beta_df = pd.DataFrame()
-    for country in country_list:
-        cSeries = summary_dict2[country]['beta']; cSeries.name=country
-        beta_df = pd.concat([beta_df,cSeries], axis=1)
-    beta_df = beta_df.sort_index()     
-    beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
-                 'TEST beta parameter had new cases stayed constant in absolute terms')
-    '''
-    
-    
+        
     df['k'] = k
     df['beta'] = beta
     proj_df,negbin_probabilities = create_projection_df(params=(a,b,p,n), df=df, 
@@ -685,6 +645,59 @@ if __name__ == "__main__":
     plt.show()
     #======================
     
+
+#________________________________________________________________________________
+if __name__ == "__main__":
+    
+    
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France' ]
+    
+    original_DPI = plt.rcParams["figure.dpi"]
+    plt.rcParams["figure.dpi"] = 100  #higher DPI plots
+
+    save_data()  #extract Johns Hopkins data and save locally
+
+    image_path = 'latest/'
+    image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
+
+
+    for selected_country in country_list:
+        analyse_country(selected_country,image_path)
+        #TODO: understand why 'France'  new cases data very low - net of recoveries?
+
+
+    #====================== plot evolution of beta parameters across countries
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
+    summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=20)
+    beta_df = pd.DataFrame()
+    for country in country_list:
+        cSeries = summary_dict[country]['beta']; cSeries.name=country
+        beta_df = pd.concat([beta_df,cSeries], axis=1)
+    beta_df = beta_df.sort_index()     
+    ax = beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
+                 'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each Date on x-axis')
+    plt.savefig(image_path+'compare_beta_new_cases_growth.png')
+    plt.show()
+    #====================== 
+    
+    '''
+
+    #test extent fitted beta parameter would have been negative had new cases stayed constant in absolute terms
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden'] #, 'Germany']
+    summary_dict2 = compare_new_cases_rate_beta_test(country_list=country_list, last_n_days=20)
+    beta_df = pd.DataFrame()
+    for country in country_list:
+        cSeries = summary_dict2[country]['beta']; cSeries.name=country
+        beta_df = pd.concat([beta_df,cSeries], axis=1)
+    beta_df = beta_df.sort_index()     
+    beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
+                 'TEST beta parameter had new cases stayed constant in absolute terms')
+    '''
+    
+
+
+    #restore orginal plot density parameters
     plt.rcParams["figure.dpi"] = original_DPI 
-    print( 'data available for:')
+    
+    print('data available for:')
     print(investigate_data())
