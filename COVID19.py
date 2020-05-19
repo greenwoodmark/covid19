@@ -456,6 +456,20 @@ def compare_new_cases_rate_beta_test(country_list, last_n_days=10):
     
     return summary_dict
 
+
+#---------------------------------------------------------------------------------
+def investigate_seasonality(selected_country,image_path):
+    """
+    calculates and plots intra-week seasonality multipliers
+    for selected_country, saving the results to image_path
+    """    
+    
+    df = prepare_data(country = selected_country, lockdown_date = None, URLnotfile = False)
+  
+    ew_halflife_days=20
+    df['exp_weight'] = ew_halflife(df.shape[0],ew_halflife_days)
+
+
 #---------------------------------------------------------------------------------
 def analyse_country(selected_country,image_path):
     """
@@ -652,6 +666,8 @@ if __name__ == "__main__":
     
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France' ]
     
+    #country_list = ['United Kingdom']
+    
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
@@ -668,6 +684,8 @@ if __name__ == "__main__":
 
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
+    
+    
     summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=20)
     beta_df = pd.DataFrame()
     for country in country_list:
@@ -683,7 +701,7 @@ if __name__ == "__main__":
     '''
 
     #test extent fitted beta parameter would have been negative had new cases stayed constant in absolute terms
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden'] #, 'Germany']
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil'] #, 'Germany']
     summary_dict2 = compare_new_cases_rate_beta_test(country_list=country_list, last_n_days=20)
     beta_df = pd.DataFrame()
     for country in country_list:
