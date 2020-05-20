@@ -188,6 +188,7 @@ def fit_err(params, hyperparams):
     df = hyperparams
     
     if 'lockdown' in df.columns:   #may choose to only fit error after this date
+        lockdown_date = pd.Timestamp(df['lockdown'].iloc[0]) 
         df = df.loc[df.index>=lockdown_date]   
         
     #update the model projection this set of parameters
@@ -458,18 +459,61 @@ def compare_new_cases_rate_beta_test(country_list, last_n_days=10):
 
 
 #---------------------------------------------------------------------------------
+def produce_seasonality_dict(proj_df):
+    """
+    returns seasonality_dict, a dict of weekday seasonality multipliers for
+    daily model_new_deaths in proj_df
+
+    """    
+    
+    #identify when cumulative deaths exceed 100 for fitting purposes    
+    mask = (proj_df['deaths']>100) & (proj_df['new_deaths']>0)
+    seasonality_df = proj_df.loc[mask]
+    seasonality_df['Date'] = seasonality_df.index
+    seasonality_df['multiplier'] = proj_df['new_deaths']/proj_df['model_new_deaths']
+    seasonality_df['log_multiplier'] = np.log(seasonality_df['multiplier']+0.001)
+    #Monday is weekday 0
+    seasonality_df['weekday'] = seasonality_df['Date'].apply(lambda x: x.weekday())
+    seasonality_dict={}
+    grouper = seasonality_df.groupby('weekday')
+    for weekday, wdf in grouper:
+        seasonality_dict[weekday] = np.dot(wdf['log_multiplier'], wdf['weight'])/(wdf['weight'].sum())
+    #normalise the seasonality dict
+    mu = np.array(list(seasonality_dict.values())).mean()
+    seasonality_dict = {k: (seasonality_dict[k] - mu) for k in seasonality_dict.keys()}
+    #transform seasonality dict back to multipliers
+    seasonality_dict = {k: np.exp(seasonality_dict[k]) for k in seasonality_dict.keys()}
+    return seasonality_dict
+
+
+#---------------------------------------------------------------------------------
 def investigate_seasonality(selected_country,image_path):
     """
-    calculates and plots intra-week seasonality multipliers
+    calculates and plots intra-week seasonality multipliers for daily deaths
     for selected_country, saving the results to image_path
     """    
     
     df = prepare_data(country = selected_country, lockdown_date = None, URLnotfile = False)
   
     ew_halflife_days=20
-    df['exp_weight'] = ew_halflife(df.shape[0],ew_halflife_days)
-
-
+    df['weight'] = ew_halflife(df.shape[0],ew_halflife_days)
+    df = fit_survival_negative_binomial(df.copy(), ew_halflife_days=ew_halflife_days, verbose=True)
+    a,b,p,n = tuple(df[['a','b','p','n']].iloc[-1])   #parameters fitted to latest date row
+    params = (a,b,p,n)
+    proj_df,negbin_probabilities = create_projection_df(params=params, df=df.copy(), 
+                                                        project_new_cases_indicator=False)
+    
+    proj_df['weight'] = ew_halflife(proj_df.shape[0],ew_halflife_days)
+    seasonality_dict = produce_seasonality_dict(proj_df)
+    seasonality_Series = pd.Series(list(seasonality_dict.values()),['Mon','Tue','Wed','Thu','Fri','Sat','Sun'])
+    ax=seasonality_Series.plot(title='daily seasonality, '+selected_country,figsize=(10,6))
+    ax.spines['bottom'].set_position(('data', 1.0))
+    ax.patch.set_edgecolor('grey')  
+    ax.patch.set_linewidth('1')
+    plt.savefig(image_path+selected_country.upper()+'_daily_seasonality.png')
+    plt.show()
+    return seasonality_dict
+    
 #---------------------------------------------------------------------------------
 def analyse_country(selected_country,image_path):
     """
@@ -500,6 +544,9 @@ def analyse_country(selected_country,image_path):
 
     proj_df,negbin_probabilities = create_projection_df(params=params, df=df.copy(), 
                                                         project_new_cases_indicator=False)
+
+    proj_df['weight'] = ew_halflife(proj_df.shape[0],ew_halflife_days)
+    seasonality_dict = produce_seasonality_dict(proj_df)
     
     proj_df['new_deaths'] = proj_df['new_deaths'].replace(0.0, np.nan) #don't plot zero values
     proj_df['new_cases'] = proj_df['new_cases'].replace(0.0, np.nan) #don't plot zero values
@@ -520,7 +567,6 @@ def analyse_country(selected_country,image_path):
     ax.legend(h1+h2, l1+l2, loc = 'upper left')  #'lower right'    
     plt.show()
     #======================
-
 
 
     #======================            latest fitted negative binomial parameters
@@ -582,13 +628,13 @@ def analyse_country(selected_country,image_path):
     fig.tight_layout()
     plt.show()
     #======================
+
         
     df['k'] = k
     df['beta'] = beta
     proj_df,negbin_probabilities = create_projection_df(params=(a,b,p,n), df=df, 
                                                         project_new_cases_indicator=True)
-
-
+        
     #======================  show the mid projection
     plot_df = proj_df[['model_new_deaths']]
     latest_data_date = pd.Timestamp(df['latest_data_date'].iloc[0])
@@ -618,6 +664,11 @@ def analyse_country(selected_country,image_path):
     print(title_text)
     print()
 
+    #deseasonalise 'model_new_deaths'
+    proj_df['Date'] = proj_df.index
+    proj_df['weekday'] = proj_df['Date'].apply(lambda x: x.weekday())
+    proj_df['seas_multiplier'] = proj_df['weekday'].apply(lambda x:seasonality_dict[x])
+    proj_df['model_new_deaths'] *=  proj_df['seas_multiplier'] 
     
     #90% confidence bounds assuming range between 5th and 95th percentile of residuals
     if selected_country!='Sweden':
@@ -634,6 +685,7 @@ def analyse_country(selected_country,image_path):
     upper_bound = (u_bound- l_bound)/2.
     lower_bound = (l_bound- u_bound)/2.    
     
+    
     #======================  show 90% confidence bounds
     plot_df = proj_df[['model_new_deaths']]
     latest_data_date = pd.Timestamp(df['latest_data_date'].iloc[0])
@@ -644,15 +696,15 @@ def analyse_country(selected_country,image_path):
     plot_df.at[~mask,'new_deaths'] = proj_df.loc[~mask,'new_deaths']
     plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
     
-    title_str = selected_country+' model deaths with 90% confidence limits,'+'\n '+title_text
+    title_str = selected_country+' model deaths with 90% confidence limits and daily seasonality,'+'\n '+title_text
     ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
     ax.fill_between(plot_df['5% bound new_deaths'].index, plot_df['5% bound new_deaths'], plot_df['95% bound new_deaths'], 
-                    color='orange', alpha=.1)   
+                    color='orange', alpha=.2)   
 
     #indicate diminishing confidence in the confidence intervals
     for x in np.arange(-5,-95,-2):
         ax.fill_between(plot_df['5% bound new_deaths'].index[x:], plot_df['5% bound new_deaths'].tail(x*-1), plot_df['95% bound new_deaths'].tail(x*-1), 
-                    color='white', alpha=.15)
+                    color='white', alpha=.1)
     
     plt.ylabel('daily deaths')
     plt.savefig(image_path+selected_country.upper()+'.png')
@@ -680,7 +732,7 @@ if __name__ == "__main__":
     for selected_country in country_list:
         analyse_country(selected_country,image_path)
         #TODO: understand why 'France'  new cases data very low - net of recoveries?
-
+        investigate_seasonality(selected_country,image_path) #saves charts
 
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
@@ -697,6 +749,8 @@ if __name__ == "__main__":
     plt.savefig(image_path+'compare_beta_new_cases_growth.png')
     plt.show()
     #====================== 
+    
+    
     
     '''
 
