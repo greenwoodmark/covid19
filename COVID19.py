@@ -664,7 +664,7 @@ def analyse_country(selected_country,image_path):
     print(title_text)
     print()
 
-    #deseasonalise 'model_new_deaths'
+    #weekday seasonality for 'model_new_deaths'
     proj_df['Date'] = proj_df.index
     proj_df['weekday'] = proj_df['Date'].apply(lambda x: x.weekday())
     proj_df['seas_multiplier'] = proj_df['weekday'].apply(lambda x:seasonality_dict[x])
