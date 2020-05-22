@@ -559,12 +559,14 @@ def analyse_country(selected_country,image_path):
            +' published daily new cases and deaths as at '
            +latest_data_date_str, figsize=(10,6))
     plt.ylabel('new deaths')
+    plt.ylim(ymin=0)
     ax2 = df['new_cases'].iloc[40:].plot(secondary_y=True, ax=ax, 
             color='black', linestyle='dotted',label='new_cases')
     plt.ylabel('new cases')
     h1, l1 = ax.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1+h2, l1+l2, loc = 'upper left')  #'lower right'    
+    plt.ylim(ymin=0)
     plt.show()
     #======================
 
@@ -576,7 +578,7 @@ def analyse_country(selected_country,image_path):
     ax=pd.Series(negbin_probabilities[0:20]).plot.bar(figsize=(6,3.75))
     
     ax.set_title(selected_country+' negative binomial probabilities for model fit at '
-             +latest_data_date_str,fontsize=9.5) 
+             +latest_data_date_str,fontsize=9.5)
     plt.show()
     #======================
 
@@ -642,6 +644,10 @@ def analyse_country(selected_country,image_path):
     plot_df.at[mask,'model_new_cases']= proj_df.loc[mask,'new_cases']
     plot_df.at[~mask,'new_deaths'] = proj_df.loc[~mask,'new_deaths']
     plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
+
+    if median_beta>0:   #only project 30 days if growth rate still increasing
+        plot_df=plot_df.head(plot_df.shape[0]-70)
+
     title_str = selected_country+' model deaths (with projected new cases)'
     ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
     plt.ylabel('daily deaths')
@@ -651,6 +657,7 @@ def analyse_country(selected_country,image_path):
     h1, l1 = ax.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1+h2, l1+l2, loc = 'best')  #'lower right'
+    plt.ylim(ymin=0)        
     plt.savefig(image_path+selected_country.upper()+'_cases_deaths'+'.png')
     plt.show()
     #======================
@@ -670,56 +677,55 @@ def analyse_country(selected_country,image_path):
     proj_df['seas_multiplier'] = proj_df['weekday'].apply(lambda x:seasonality_dict[x])
     proj_df['model_new_deaths'] *=  proj_df['seas_multiplier'] 
     
-    #90% confidence bounds assuming range between 5th and 95th percentile of residuals
-    if selected_country!='Sweden':
-        threshold_daily_deaths = 100
-    else:
-        threshold_daily_deaths = 20    
-    latest_data_date = proj_df['latest_data_date'].iloc[0]
-    mask = (proj_df['model_new_deaths']>threshold_daily_deaths) & (proj_df.index<=latest_data_date)
-    proj_df.at[mask,'error'] = proj_df.loc[mask,'new_deaths']-proj_df.loc[mask,'model_new_deaths']
-    proj_df.at[mask,'error'] = proj_df.loc[mask,'error'] / proj_df.loc[mask,'model_new_deaths']
-    l_bound, u_bound = np.percentile(proj_df.loc[mask,'error'].values, 
-                                             [5,95], interpolation = 'linear')
-    #rebalance bounds around zero
-    upper_bound = (u_bound- l_bound)/2.
-    lower_bound = (l_bound- u_bound)/2.    
-    
-    
-    #======================  show 90% confidence bounds
-    plot_df = proj_df[['model_new_deaths']]
-    latest_data_date = pd.Timestamp(df['latest_data_date'].iloc[0])
-    mask = (proj_df.index>latest_data_date)  
-    plot_df.at[mask,'5% bound new_deaths'] = proj_df.loc[mask,'model_new_deaths']*(1+lower_bound)
-    plot_df.at[mask,'95% bound new_deaths'] = proj_df.loc[mask,'model_new_deaths']*(1+upper_bound)
-    plot_df.at[mask,'model_new_cases']= proj_df.loc[mask,'new_cases']
-    plot_df.at[~mask,'new_deaths'] = proj_df.loc[~mask,'new_deaths']
-    plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
-    
-    title_str = selected_country+' model deaths with 90% confidence limits and daily seasonality,'+'\n '+title_text
-    ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
-    ax.fill_between(plot_df['5% bound new_deaths'].index, plot_df['5% bound new_deaths'], plot_df['95% bound new_deaths'], 
-                    color='orange', alpha=.2)   
 
-    #indicate diminishing confidence in the confidence intervals
-    for x in np.arange(-5,-95,-2):
-        ax.fill_between(plot_df['5% bound new_deaths'].index[x:], plot_df['5% bound new_deaths'].tail(x*-1), plot_df['95% bound new_deaths'].tail(x*-1), 
-                    color='white', alpha=.1)
+    if median_beta<0:
+        #======================  show confidence bounds only if case growth rate<0
+        #90% confidence bounds assuming range between 5th and 95th percentile of residuals
+        if selected_country!='Sweden':
+            threshold_daily_deaths = 100
+        else:
+            threshold_daily_deaths = 20    
+        latest_data_date = proj_df['latest_data_date'].iloc[0]
+        mask = (proj_df['model_new_deaths']>threshold_daily_deaths) & (proj_df.index<=latest_data_date)
+        proj_df.at[mask,'error'] = proj_df.loc[mask,'new_deaths']-proj_df.loc[mask,'model_new_deaths']
+        proj_df.at[mask,'error'] = proj_df.loc[mask,'error'] / proj_df.loc[mask,'model_new_deaths']
+        l_bound, u_bound = np.percentile(proj_df.loc[mask,'error'].values, 
+                                                 [5,95], interpolation = 'linear')
+        #rebalance bounds around zero
+        upper_bound = (u_bound- l_bound)/2.
+        lower_bound = (l_bound- u_bound)/2.    
     
-    plt.ylabel('daily deaths')
-    plt.savefig(image_path+selected_country.upper()+'.png')
-    plt.show()
-    #======================
+        plot_df = proj_df[['model_new_deaths']]
+        latest_data_date = pd.Timestamp(df['latest_data_date'].iloc[0])
+        mask = (proj_df.index>latest_data_date)  
+        plot_df.at[mask,'5% bound new_deaths'] = proj_df.loc[mask,'model_new_deaths']*(1+lower_bound)
+        plot_df.at[mask,'95% bound new_deaths'] = proj_df.loc[mask,'model_new_deaths']*(1+upper_bound)
+        plot_df.at[mask,'model_new_cases']= proj_df.loc[mask,'new_cases']
+        plot_df.at[~mask,'new_deaths'] = proj_df.loc[~mask,'new_deaths']
+        plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
+        
+        title_str = selected_country+' model deaths with 90% confidence limits and daily seasonality,'+'\n '+title_text
+        ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
+        ax.fill_between(plot_df['5% bound new_deaths'].index, plot_df['5% bound new_deaths'], plot_df['95% bound new_deaths'], 
+                        color='orange', alpha=.2)   
+    
+        #indicate diminishing confidence in the confidence intervals
+        for x in np.arange(-5,-95,-2):
+            ax.fill_between(plot_df['5% bound new_deaths'].index[x:], plot_df['5% bound new_deaths'].tail(x*-1), plot_df['95% bound new_deaths'].tail(x*-1), 
+                        color='white', alpha=.1)
+        
+        plt.ylabel('daily deaths')
+        plt.savefig(image_path+selected_country.upper()+'.png')
+        plt.show()
+        #======================
     
 
 #________________________________________________________________________________
 if __name__ == "__main__":
     
     
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France' ]
-    
-    #country_list = ['United Kingdom']
-    
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France', 'South Africa']
+        
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
