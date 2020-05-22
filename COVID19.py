@@ -645,12 +645,13 @@ def analyse_country(selected_country,image_path):
     plot_df.at[~mask,'new_deaths'] = proj_df.loc[~mask,'new_deaths']
     plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
 
-    if median_beta>0:   #only project 30 days if growth rate still increasing
+    if (median_beta>-0.01):   #only project 30 days if cases growth rate not under control
         plot_df=plot_df.head(plot_df.shape[0]-70)
 
     title_str = selected_country+' model deaths (with projected new cases)'
     ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
     plt.ylabel('daily deaths')
+    plt.ylim(ymin=0)        
     ax2 = plot_df[['new_cases','model_new_cases']].iloc[40:].plot(secondary_y=True, ax=ax, 
                  color=['black','grey'], linestyle='dotted',label='new_cases')
     plt.ylabel('new cases')
@@ -678,7 +679,7 @@ def analyse_country(selected_country,image_path):
     proj_df['model_new_deaths'] *=  proj_df['seas_multiplier'] 
     
 
-    if median_beta<0:
+    if (median_beta<-0.01):
         #======================  show confidence bounds only if case growth rate<0
         #90% confidence bounds assuming range between 5th and 95th percentile of residuals
         if selected_country!='Sweden':
@@ -743,7 +744,6 @@ if __name__ == "__main__":
 
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
-    
     
     summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=20)
     beta_df = pd.DataFrame()
