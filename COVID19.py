@@ -715,6 +715,7 @@ def analyse_country(selected_country,image_path):
                         color='white', alpha=.1)
         
         plt.ylabel('daily deaths')
+        plt.ylim(ymin=0)        
         plt.savefig(image_path+selected_country.upper()+'.png')
         plt.show()
         #======================
