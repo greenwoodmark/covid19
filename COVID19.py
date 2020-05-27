@@ -728,6 +728,8 @@ if __name__ == "__main__":
     
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France', 'South Africa']
         
+    country_list = ['US']   
+    
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
