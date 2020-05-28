@@ -682,10 +682,10 @@ def analyse_country(selected_country,image_path):
     if (median_beta<-0.01):
         #======================  show confidence bounds only if case growth rate<0
         #90% confidence bounds assuming range between 5th and 95th percentile of residuals
-        if selected_country!='Sweden':
-            threshold_daily_deaths = 100
+        if (selected_country == "Sweden") or (selected_country == "Japan"):
+            threshold_daily_deaths = 20
         else:
-            threshold_daily_deaths = 20    
+            threshold_daily_deaths = 100
         latest_data_date = proj_df['latest_data_date'].iloc[0]
         mask = (proj_df['model_new_deaths']>threshold_daily_deaths) & (proj_df.index<=latest_data_date)
         proj_df.at[mask,'error'] = proj_df.loc[mask,'new_deaths']-proj_df.loc[mask,'model_new_deaths']
@@ -725,9 +725,8 @@ def analyse_country(selected_country,image_path):
 #________________________________________________________________________________
 if __name__ == "__main__":
     
-    
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France', 'South Africa']
-            
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France', 'South Africa','Japan']
+       
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
@@ -744,7 +743,7 @@ if __name__ == "__main__":
 
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
-    
+
     summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=20)
     beta_df = pd.DataFrame()
     for country in country_list:
