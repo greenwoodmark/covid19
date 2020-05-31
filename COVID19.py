@@ -741,6 +741,7 @@ if __name__ == "__main__":
         #TODO: understand why 'France'  new cases data very low - net of recoveries?
         investigate_seasonality(selected_country,image_path) #saves charts
 
+
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
 
