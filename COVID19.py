@@ -623,7 +623,7 @@ def analyse_country(selected_country,image_path):
     mask2 = (new_cases_df.index>new_cases_df['new_cases'].index[-21]) #only last 20 observations
     fig, (ax, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(11, 5))
     new_cases_df[['new_cases_rate','new_cases_rate_fitted']].loc[mask1].plot(ax=ax)
-    ax.set_title('new cases and fitted model exp('+str(round(k,4))+str(round(beta,5))+'t)', fontsize=11)
+    ax.set_title('new cases and fitted model exp('+str(round(k,4))+'+'+str(round(beta,5))+'t)', fontsize=11)
     new_cases_df[['new_cases_rate','new_cases_rate_fitted']].loc[mask2].plot(ax=ax2)
     #ax2.set_title('new_cases_rate_fitted(t) = exp(k+t.beta)', fontsize=11) 
     ax2.set_title('latest 20 observations', fontsize=11)
@@ -726,6 +726,8 @@ def analyse_country(selected_country,image_path):
 if __name__ == "__main__":
     
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France', 'South Africa','Japan']
+
+
 
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
