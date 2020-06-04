@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+b# -*- coding: utf-8 -*-
 """
 module to support COVID19.ipynb notebook to fit negative binomial model to
 Johns Hopkins COVID-19 cases and deaths data by country
@@ -11,13 +11,13 @@ import matplotlib.pyplot as plt
 
 
 #---------------------------------------------------------------------------------
-def ew_halflife(n,halflife):
+def ew_halflife(n, halflife):
     """
     returns np array of exponential weights given halflife, see pandas.ewma docs
     """
     alpha = 1-np.exp(np.log(0.5)/halflife)
     ewalpha = lambda x: (1-alpha)**(n-x)
-    weights = ewalpha(np.arange(1,n+1))
+    weights = ewalpha(np.arange(1, n+1))
     return weights
 
 
@@ -27,7 +27,7 @@ def save_data(localpath='C:/Users/Mark/Documents/Python/code/covid19/'):
     url_c = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
     urlretrieve(url_c, localpath+'/time_series_covid19_confirmed_global.csv')
     url_d = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
-    urlretrieve(url_d,localpath+'/time_series_covid19_deaths_global.csv')    
+    urlretrieve(url_d,localpath+'/time_series_covid19_deaths_global.csv')
     return
 
 
@@ -726,6 +726,7 @@ def analyse_country(selected_country,image_path):
 if __name__ == "__main__":
     
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France', 'South Africa','Japan']
+
 
 
 
