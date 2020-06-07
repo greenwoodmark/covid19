@@ -1,4 +1,4 @@
-b# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 module to support COVID19.ipynb notebook to fit negative binomial model to
 Johns Hopkins COVID-19 cases and deaths data by country
@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats import nbinom
 import matplotlib.pyplot as plt
-
+import multiprocessing
 
 #---------------------------------------------------------------------------------
 def ew_halflife(n, halflife):
@@ -130,6 +130,112 @@ def prepare_data(country='United Kingdom', lockdown_date = None, URLnotfile = Tr
     return df
 
 #---------------------------------------------------------------------------------
+def prepare_data_OWID(country='United Kingdom', lockdown_date = None, URLnotfile = True):
+    """
+    extract covid.ourworldindata.org COVID-19 cases and deaths data by country from github urls
+    
+    otherwise similar to prepare_data() 
+    
+    
+    ***but date labels all shifted by 1 day***
+    
+    
+    """    
+
+    #confirmed cases in time_series_covid19_confirmed_global.csv
+    url_c = 'https://covid.ourworldindata.org/data/ecdc/total_cases.csv'
+    file_c = 'C:/Users/Mark/Documents/Python/code/covid19/time_series_covid19_confirmed_global.csv'
+    
+    if URLnotfile:
+        read_c = url_c #url_c or local file_c if saved already
+    else:
+        read_c = file_c #url_c or local file_c if saved already
+        
+    df_c = pd.read_csv(read_c)   #global confirmed cases
+    df_c = df_c.T
+    
+    dates_Series = df_c.head(1).values
+    dates_list = dates_Series.tolist()[0]
+    
+    df_c = df_c.tail(df_c.shape[0]-1)
+    
+    df_c.columns = dates_list
+    
+    df_c = df_c.reset_index(drop=False)
+
+    df_c['Country/Region'] = df_c['index']
+
+    df_cc = df_c.loc[(df_c['Country/Region']==country)]
+    df_cc = df_cc.T; df_cc.columns=['cases']
+    df_cc = df_cc.iloc[1:]
+    df_cc = df_cc.iloc[:-1] 
+    df_cc.index = pd.to_datetime(df_cc.index)
+    
+    #deaths in time_series_covid19_deaths_global.csv
+    url_d = 'https://covid.ourworldindata.org/data/ecdc/total_deaths.csv'
+    file_d = 'C:/Users/Mark/Documents/Python/code/covid19/time_series_covid19_deaths_global.csv'
+    if (read_c==url_c):
+        read_d = url_d #url_d or local file_d if saved already
+    else:
+        read_d = file_d
+
+    df_d = pd.read_csv(read_d)   #global confirmed cases
+    df_d = df_d.T
+    
+    dates_Series = df_d.head(1).values
+    dates_list = dates_Series.tolist()[0]
+    
+    df_d = df_d.tail(df_d.shape[0]-1)
+    
+    df_d.columns = dates_list
+    
+    df_d = df_d.reset_index(drop=False)
+
+    df_d['Country/Region'] = df_d['index']
+
+    df_dc = df_d.loc[(df_d['Country/Region']==country)]
+    df_dc = df_dc.T; df_dc.columns=['deaths']
+    df_dc = df_dc.iloc[1:]
+    df_dc = df_dc.iloc[:-1] 
+    df_dc.index = pd.to_datetime(df_dc.index)
+   
+    # 2020-04-24 are some countries' new cases net of recoveries?
+    # e.g. France has negative new cases    
+    
+    df = pd.concat([df_cc,df_dc], axis=1, sort=False)
+    
+    df['country'] = country
+    df['latest_data_date'] = df_dc.index.max().strftime('%Y-%m-%d')
+    
+    if pd.isnull(lockdown_date):
+        df = df[['country','latest_data_date','cases','deaths']]
+    else:
+        df['lockdown'] = lockdown_date    
+        df = df[['country','latest_data_date','lockdown','cases','deaths']]
+    
+    df['new_deaths'] = df['deaths']-df['deaths'].shift(1)
+    df['new_cases'] = df['cases']-df['cases'].shift(1)
+    df.at[df.index[0],'new_deaths']=df.loc[df.index[0],'deaths']
+    df.at[df.index[0],'new_cases']=df.loc[df.index[0],'cases']
+    df['new_cases_rate'] = df['new_cases'] / (df['cases'].shift(1)+1e-10)
+    df.at[df.index[0],'new_cases_rate']=0.0
+ 
+    negative_rates_list = list(df.loc[df['new_cases_rate']<0].index)
+    negative_rates_list = [d.strftime('%Y-%m-%d') for d in negative_rates_list]
+    if negative_rates_list: #warn
+        print(); print('--------------------------------------------------------------------')
+        print('WARNING: check negative growth in new cases for dates',negative_rates_list)
+        print('         -> new cases and growth rates for these dates have been set to zero')
+        print(); print('--------------------------------------------------------------------')
+        df.at[df['new_cases']<0,'new_cases']=0.0        
+        df.at[df['new_cases_rate']<0,'new_cases_rate']=0.0   
+        
+    df = df[df.index>='22/01/2020'] #ensures same data range as Johns Hopkins data    
+    
+    return df
+
+#---------------------------------------------------------------------------------
+
 def fit_survival_negative_binomial(df, ew_halflife_days=50, verbose=True):
     """
     fits and adds parameters (s,n,p) each day from day 30 
@@ -515,7 +621,7 @@ def investigate_seasonality(selected_country,image_path):
     return seasonality_dict
     
 #---------------------------------------------------------------------------------
-def analyse_country(selected_country,image_path):
+def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/code/covid19/latest/'):
     """
     plots the following for string selected_country...
 
@@ -720,15 +826,21 @@ def analyse_country(selected_country,image_path):
         plt.savefig(image_path+selected_country.upper()+'.png')
         plt.show()
         #======================
+        return ('analyse_country() for '+str(selected_country)+' completed')
     
+#---------------------------------------------------------------------------------    
+def analyse_country_mp(country_list):
+    pool = multiprocessing.Pool()
+    results = pool.map(analyse_country, country_list)
+    pool.close()
+    pool.join()
+    for result in results:
+        print(result)
 
 #________________________________________________________________________________
 if __name__ == "__main__":
     
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France', 'South Africa','Japan']
-
-
-
 
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
@@ -738,12 +850,17 @@ if __name__ == "__main__":
     image_path = 'latest/'
     image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
 
-
+    '''   OLD: ***serial processing getting slow so code commented out ***
     for selected_country in country_list:
         analyse_country(selected_country,image_path)
-        #TODO: understand why 'France'  new cases data very low - net of recoveries?
         investigate_seasonality(selected_country,image_path) #saves charts
+    '''    
 
+    print('using multiprocessing module to analyse each country - be patient!')
+    analyse_country_mp(country_list)
+    
+    for selected_country in country_list:
+        investigate_seasonality(selected_country,image_path) #saves charts
 
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
