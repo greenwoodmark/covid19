@@ -593,7 +593,7 @@ def produce_seasonality_dict(proj_df):
 
 
 #---------------------------------------------------------------------------------
-def investigate_seasonality(selected_country,image_path):
+def investigate_seasonality(selected_country,image_path='C:/Users/Mark/Documents/Python/code/covid19/latest/'):
     """
     calculates and plots intra-week seasonality multipliers for daily deaths
     for selected_country, saving the results to image_path
@@ -829,6 +829,15 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
         return ('analyse_country() for '+str(selected_country)+' completed')
     
 #---------------------------------------------------------------------------------    
+def investigate_seasonality_mp(country_list):
+    pool = multiprocessing.Pool()
+    results = pool.map(investigate_seasonality, country_list)
+    pool.close()
+    pool.join()
+    for result in results:
+        print(result)
+
+#---------------------------------------------------------------------------------    
 def analyse_country_mp(country_list):
     pool = multiprocessing.Pool()
     results = pool.map(analyse_country, country_list)
@@ -841,7 +850,7 @@ def analyse_country_mp(country_list):
 if __name__ == "__main__":
     
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France', 'South Africa','Japan']
-
+    
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
@@ -858,9 +867,14 @@ if __name__ == "__main__":
 
     print('using multiprocessing module to analyse each country - be patient!')
     analyse_country_mp(country_list)
-    
+
+    '''   OLD: ***serial processing getting slow so code commented out ***
     for selected_country in country_list:
         investigate_seasonality(selected_country,image_path) #saves charts
+    '''    
+
+    investigate_seasonality_mp(country_list)
+    
 
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
@@ -877,10 +891,8 @@ if __name__ == "__main__":
     plt.show()
     #====================== 
     
-    
-    
+        
     '''
-
     #test extent fitted beta parameter would have been negative had new cases stayed constant in absolute terms
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil'] #, 'Germany']
     summary_dict2 = compare_new_cases_rate_beta_test(country_list=country_list, last_n_days=20)
