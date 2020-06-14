@@ -355,7 +355,7 @@ def project_new_cases(new_cases_df, halflife_days=5):
     """
     WLS projected new_cases_rate using halflife in days 
     The projection new_cases_rate(t) = exp(k + beta*t) is fitted via log transformation 
-    only fit new_cases_rate from when cumulative new cases exceed 100
+    Only fit new_cases_rate from when cumulative new cases exceed 100
 
     returns (new_cases_df with fit added, k, beta)
     
@@ -828,6 +828,14 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
         #======================
         return ('analyse_country() for '+str(selected_country)+' completed')
     
+#---------------------------------------------------------------------------------    
+def investigate_seasonality_mp(country_list):
+    pool = multiprocessing.Pool()
+    results = pool.map(investigate_seasonality, country_list)
+    pool.close()
+    pool.join()
+    for result in results:
+        print(result)
 
 #---------------------------------------------------------------------------------    
 def analyse_country_mp(country_list):
@@ -842,7 +850,7 @@ def analyse_country_mp(country_list):
 if __name__ == "__main__":
     
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France', 'South Africa','Japan']
-        
+    
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
@@ -858,11 +866,13 @@ if __name__ == "__main__":
     '''    
 
     print('using multiprocessing module to analyse each country - be patient!')
-    
-    analyse_country_mp(country_list)  #(charts saved to default image_path)
+    analyse_country_mp(country_list)
 
+    '''   OLD: ***serial processing getting slow so code commented out ***
     for selected_country in country_list:
         investigate_seasonality(selected_country,image_path) #saves charts
+    '''    
+    investigate_seasonality_mp(country_list)
     
 
     #====================== plot evolution of beta parameters across countries
