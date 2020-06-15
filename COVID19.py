@@ -355,11 +355,11 @@ def project_new_cases(new_cases_df, halflife_days=5):
     """
     WLS projected new_cases_rate using halflife in days 
     The projection new_cases_rate(t) = exp(k + beta*t) is fitted via log transformation 
-    Only fit new_cases_rate from when cumulative new cases exceed 100
-
+        
     returns (new_cases_df with fit added, k, beta)
     
     """
+
     import statsmodels.api as sm  #use weighted least squares to fit trend in new cases
     mask = (new_cases_df['new_cases'].cumsum()>100)
     X = np.arange(0,new_cases_df.loc[mask].shape[0])
@@ -377,9 +377,8 @@ def project_new_cases(new_cases_df, halflife_days=5):
     new_cases_df.at[mask,'new_cases_rate_fitted'] = new_cases_pred.reshape((-1,1))
     new_cases_df['weights'] = np.nan
     new_cases_df.at[mask,'weights'] = weights
-
+    
     return (new_cases_df, k, beta)
-
 
 #-------------------------------------------------
 def create_projection_df(params, df, project_new_cases_indicator=0):
@@ -480,16 +479,22 @@ def find_median_halflife_days(new_cases_df, HLD_list = [2,3,4,5,6,7,8,9,10]):
     """
     fit new_cases_rate(t) = exp(k + beta * t) using weighted least squares 
     and choose the median beta from halflife_days weighting in HLD_list
-
     record fit parameters in fit_dict, indexed on HLD
+
+    2020-06-15: see docs. We now fit using 7-day rolling average of new_cases_rate. 
     
     returns median_halflife_days, fit_dict
 
     """
     fit_dict={}  #to store fitted parameters, indexed on HLD
 
+    new_cases_df_MA = new_cases_df.copy() #first make a deep copy
+    #reduce effect of weekday reporting pattern by using 7-day rolling mean new_cases_rate
+    new_cases_df_MA['new_cases_rate'] = new_cases_df_MA['new_cases_rate'].rolling(window=7).mean()
+    new_cases_df_MA['new_cases_rate'] = new_cases_df_MA['new_cases_rate'].fillna(0.0)
+
     for HLD in HLD_list:
-        new_cases_df,k,beta = project_new_cases(new_cases_df, halflife_days = HLD)
+        new_cases_df_MA,k,beta = project_new_cases(new_cases_df_MA, halflife_days = HLD)
         fit_dict[HLD]={'k': k, 'beta': beta}
     beta_list = [fit_dict[x]['beta'] for x in HLD_list]
     median_beta = np.median(beta_list)
@@ -727,6 +732,10 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
     #====================== plot new_cases_rate and median fit
     mask1 = (new_cases_df['new_cases'].cumsum()>=100)
     mask2 = (new_cases_df.index>new_cases_df['new_cases'].index[-21]) #only last 20 observations
+
+    new_cases_df['new_cases_rate'] = new_cases_df['new_cases_rate'].rolling(window=7).mean()
+    new_cases_df['new_cases_rate'] = new_cases_df['new_cases_rate'].fillna(0.0) 
+
     fig, (ax, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(11, 5))
     new_cases_df[['new_cases_rate','new_cases_rate_fitted']].loc[mask1].plot(ax=ax)
     ax.set_title('new cases and fitted model exp('+str(round(k,4))+'+'+str(round(beta,5))+'t)', fontsize=11)
