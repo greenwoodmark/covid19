@@ -887,7 +887,7 @@ if __name__ == "__main__":
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
 
-    summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=20)
+    summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=40)
     beta_df = pd.DataFrame()
     for country in country_list:
         cSeries = summary_dict[country]['beta']; cSeries.name=country
