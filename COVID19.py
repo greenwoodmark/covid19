@@ -887,13 +887,13 @@ if __name__ == "__main__":
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
 
-    summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=40)
+    summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=60)
     beta_df = pd.DataFrame()
     for country in country_list:
         cSeries = summary_dict[country]['beta']; cSeries.name=country
         beta_df = pd.concat([beta_df,cSeries], axis=1)
     beta_df = beta_df.sort_index()     
-    ax = beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
+    ax = beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.01), title = 
                  'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each Date on x-axis')
     plt.savefig(image_path+'compare_beta_new_cases_growth.png')
     plt.show()
