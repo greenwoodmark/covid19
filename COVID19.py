@@ -835,7 +835,7 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
         plt.savefig(image_path+selected_country.upper()+'.png')
         plt.show()
         #======================
-        return ('analyse_country() for '+str(selected_country)+' completed')
+    return ('analyse_country() for '+str(selected_country)+' completed')
     
 #---------------------------------------------------------------------------------    
 def investigate_seasonality_mp(country_list):
