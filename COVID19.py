@@ -887,7 +887,7 @@ if __name__ == "__main__":
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
 
-    beta_n_days = 60
+    beta_n_days = 70
     
     #first check beta threshold at which new cases stay constant in absolute terms
     #(this is the R_0=1 line)
@@ -912,14 +912,11 @@ if __name__ == "__main__":
     colors_list=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#e377c2', 'black']
     styles_list=['-','-','-','-','-','-','--']
     ax = beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.01), title = 
-                 'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each Date on x-axis', 
+                 'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each date on x-axis', 
                  color=colors_list, style=styles_list)
     plt.savefig(image_path+'compare_beta_new_cases_growth.png')
     plt.show()
     #====================== 
-
-    colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
-                
 
     #restore orginal plot density parameters
     plt.rcParams["figure.dpi"] = original_DPI 
