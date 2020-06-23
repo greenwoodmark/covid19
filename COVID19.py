@@ -887,33 +887,39 @@ if __name__ == "__main__":
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
 
-    summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=60)
+    beta_n_days = 60
+    
+    #first check beta threshold at which new cases stay constant in absolute terms
+    #(this is the R_0=1 line)
+    summary_dict2 = compare_new_cases_rate_beta_test(country_list=country_list, last_n_days=beta_n_days)
+    test_beta_df = pd.DataFrame()
+    for country in country_list:
+        cSeries = summary_dict2[country]['beta']; cSeries.name=country
+        test_beta_df = pd.concat([test_beta_df,cSeries], axis=1)
+    test_beta_df = test_beta_df.sort_index()     
+    #test_beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
+    #             'TEST beta parameter had new cases stayed constant in absolute terms')    
+
+    summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=beta_n_days)
     beta_df = pd.DataFrame()
     for country in country_list:
         cSeries = summary_dict[country]['beta']; cSeries.name=country
         beta_df = pd.concat([beta_df,cSeries], axis=1)
-    beta_df = beta_df.sort_index()     
+    testSeries = test_beta_df.mean(axis=1)
+    testSeries.name='R_0 = 1 boundary'
+    beta_df = pd.concat([beta_df,testSeries], axis=1)
+    beta_df = beta_df.sort_index()
+    colors_list=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#e377c2', 'black']
+    styles_list=['-','-','-','-','-','-','--']
     ax = beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.01), title = 
-                 'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each Date on x-axis')
+                 'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each Date on x-axis', 
+                 color=colors_list, style=styles_list)
     plt.savefig(image_path+'compare_beta_new_cases_growth.png')
     plt.show()
     #====================== 
-    
-        
-    '''
-    #test extent fitted beta parameter would have been negative had new cases stayed constant in absolute terms
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil'] #, 'Germany']
-    summary_dict2 = compare_new_cases_rate_beta_test(country_list=country_list, last_n_days=20)
-    beta_df = pd.DataFrame()
-    for country in country_list:
-        cSeries = summary_dict2[country]['beta']; cSeries.name=country
-        beta_df = pd.concat([beta_df,cSeries], axis=1)
-    beta_df = beta_df.sort_index()     
-    beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
-                 'TEST beta parameter had new cases stayed constant in absolute terms')
-    '''
-    
 
+    colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+                
 
     #restore orginal plot density parameters
     plt.rcParams["figure.dpi"] = original_DPI 
