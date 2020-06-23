@@ -794,7 +794,7 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
     proj_df['model_new_deaths'] *=  proj_df['seas_multiplier'] 
     
 
-    if (median_beta<-0.01):
+    if (median_beta<0.02):
         #======================  show confidence bounds only if case growth rate<0
         #90% confidence bounds assuming range between 5th and 95th percentile of residuals
         if (selected_country == "Sweden") or (selected_country == "Japan"):
