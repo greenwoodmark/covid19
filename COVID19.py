@@ -641,7 +641,6 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
     """    
     
     df = prepare_data(country = selected_country, lockdown_date = None, URLnotfile = False)
-  
     print(df.tail())
     
     ew_halflife_days=20
@@ -650,6 +649,9 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
         
     df = fit_survival_negative_binomial(df.copy(), ew_halflife_days=ew_halflife_days, verbose=True)
     a,b,p,n = tuple(df[['a','b','p','n']].iloc[-1])   #parameters fitted to latest date row
+
+    #++++++++++ to compare projection using the parameters frozen a month ago, just uncomment line below
+    #a,b,p,n = tuple(df[['a','b','p','n']].iloc[-32])
 
     params = (a,b,p,n)
 
@@ -713,7 +715,12 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
 
     # we fit new_cases_rate(t) = exp(k + beta * t) using weighted least squares 
     # and choose the median beta from halflife_days weighting in HLD_list
+    
     new_cases_df = df[['new_cases','new_cases_rate']]
+
+    #++++++++++ to compare projection using the parameters frozen a month ago, just uncomment line below
+    #new_cases_df = df[['new_cases','new_cases_rate']].iloc[:-31]
+
     mask = (new_cases_df['new_cases'].cumsum()>=100)
     new_cases_df = new_cases_df.loc[mask]
     median_HLD, fit_dict = find_median_halflife_days(new_cases_df, HLD_list = [2,3,4,5,6,7,8,9,10])
@@ -724,6 +731,9 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
     print()
 
     new_cases_df = df[['new_cases','new_cases_rate']].dropna().copy()
+    #++++++++++ to compare projection using the parameters frozen a month ago, just uncomment line below
+    #new_cases_df = df[['new_cases','new_cases_rate']].iloc[:-31].dropna().copy()
+
     new_cases_df,k,beta = project_new_cases(new_cases_df, halflife_days = median_HLD)
 
     print()
@@ -737,7 +747,7 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
     new_cases_df['new_cases_rate'] = new_cases_df['new_cases_rate'].fillna(0.0) 
 
     fig, (ax, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(11, 5))
-    new_cases_df[['new_cases_rate','new_cases_rate_fitted']].loc[mask1].plot(ax=ax)
+    new_cases_df[['new_cases_rate','new_cases_rate_fitted']].loc[mask1].plot(ax=ax,logy=True)
     ax.set_title('new cases and fitted model exp('+str(round(k,4))+'+'+str(round(beta,5))+'t)', fontsize=11)
     new_cases_df[['new_cases_rate','new_cases_rate_fitted']].loc[mask2].plot(ax=ax2)
     #ax2.set_title('new_cases_rate_fitted(t) = exp(k+t.beta)', fontsize=11) 
@@ -821,7 +831,7 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
         plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
         
         title_str = selected_country+' model deaths with 90% confidence limits and daily seasonality,'+'\n '+title_text
-        ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
+        ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(13,7.5))
         ax.fill_between(plot_df['5% bound new_deaths'].index, plot_df['5% bound new_deaths'], plot_df['95% bound new_deaths'], 
                         color='orange', alpha=.2)   
     
