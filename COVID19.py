@@ -381,7 +381,8 @@ def project_new_cases(new_cases_df, halflife_days=5):
     return (new_cases_df, k, beta)
 
 #-------------------------------------------------
-def create_projection_df(params, df, project_new_cases_indicator=0):
+def create_projection_df(params, df, project_new_cases_indicator=0, 
+                         ultsurvivedate='2021-07-01'):
     """
     adds to DataFrame df the negative binomial model deaths 
     (used to plot model projection for last set of parameters, params)
@@ -409,7 +410,7 @@ def create_projection_df(params, df, project_new_cases_indicator=0):
     df.at[mask,'s'] = a + b * np.arange(-1*df.loc[mask].shape[0]+1,1)
     #hold survival rates constant in period before 100 cumulative cases
     df['s']=df['s'].fillna(method='bfill')
-
+    lastsurvivalrate = df['s'].tail(1)[0]
     #add another 100 days to index for projecting future cases and deaths
     next_dt = df.index[-1]+pd.DateOffset(1) 
     index_list = list(df.index)+list(pd.date_range(next_dt,periods=100, freq='D').values)
@@ -419,10 +420,14 @@ def create_projection_df(params, df, project_new_cases_indicator=0):
     df = df.reindex(index_list)
     df['cases']=df['cases'].fillna(method='ffill')   #TODO add growth using cases_growth_rate
     df['deaths']=df['deaths'].fillna(method='ffill')
-    #survival probabilities for future dates remain constant at current level
-    df['s']=df['s'].fillna(method='ffill')
-    df = df.fillna(0.0)
+
+    #100% survival by ultsurvivedate, prorated to last day in df
+    improvement_ratio = (100.0/(pd.Timestamp(ultsurvivedate)-df.index[-1]).days)        
+    df.at[df.index[-1],'s'] = lastsurvivalrate + improvement_ratio*(1-lastsurvivalrate)
+    df['s'] = df['s'].interpolate('linear')
     
+    df = df.fillna(0.0)
+        
     days_limit = df.index.shape[0]  #we limit this to prevent the fitting taking too long
     arr = np.array(range(days_limit))  #we limit analysis to days_limit after infection
     nbpr = lambda x: nbinom.pmf(x, n, p)
@@ -626,7 +631,9 @@ def investigate_seasonality(selected_country,image_path='C:/Users/Mark/Documents
     return seasonality_dict
     
 #---------------------------------------------------------------------------------
-def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/code/covid19/latest/'):
+def analyse_country(selected_country,
+                    image_path='C:/Users/Mark/Documents/Python/code/covid19/latest/',
+                    ultsurvivedate='2021-07-01'):
     """
     plots the following for string selected_country...
 
@@ -638,6 +645,8 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
         6) show the mid deaths only projection with 90% confidence bounds
 
     ...saving the results to image_path
+    
+    survival rates tend to 100% by ultsurvivedate linearly from latest fitted rate
     """    
     
     df = prepare_data(country = selected_country, lockdown_date = None, URLnotfile = False)
@@ -702,7 +711,7 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
    
     sdf = pd.DataFrame(survivalrate_Series, columns=['s'], index=df.index)
     ax = sdf[['s']].tail(30).plot(
-            title='fitted survival rate, '+selected_country,
+            title='fitted survival rate, '+selected_country+' (trends to zero by '+ultsurvivedate+')',
             ylim=(50,100), 
             figsize=(8,5.5))
     import matplotlib.ticker as mtick
@@ -760,7 +769,8 @@ def analyse_country(selected_country,image_path='C:/Users/Mark/Documents/Python/
     df['k'] = k
     df['beta'] = beta
     proj_df,negbin_probabilities = create_projection_df(params=(a,b,p,n), df=df, 
-                                                        project_new_cases_indicator=True)
+                                                        project_new_cases_indicator=True,
+                                                        ultsurvivedate=ultsurvivedate)
         
     #======================  show the mid projection
     plot_df = proj_df[['model_new_deaths']]
@@ -868,8 +878,7 @@ def analyse_country_mp(country_list):
 #________________________________________________________________________________
 if __name__ == "__main__":
     
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France', 'South Africa','Japan']
-    
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France','Japan','South Africa']
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
