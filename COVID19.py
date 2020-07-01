@@ -650,6 +650,26 @@ def analyse_country(selected_country,
     """    
     
     df = prepare_data(country = selected_country, lockdown_date = None, URLnotfile = False)
+    
+    
+    
+    
+    
+    
+    df = df.head(df.shape[0]-1)
+    df['latest_data_date']=df.index[-1].strftime('%Y-%m-%d')
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     print(df.tail())
     
     ew_halflife_days=20
@@ -878,7 +898,8 @@ def analyse_country_mp(country_list):
 #________________________________________________________________________________
 if __name__ == "__main__":
     
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil','Germany','France','Japan','South Africa']
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden']
+    country_list +=['Brazil','Germany','France','Japan'] #,'South Africa']
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
@@ -930,7 +951,7 @@ if __name__ == "__main__":
     beta_df = beta_df.sort_index()
     colors_list=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#e377c2', 'black']
     styles_list=['-','-','-','-','-','-','--']
-    ax = beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.01), title = 
+    ax = beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.02), title = 
                  'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each date on x-axis', 
                  color=colors_list, style=styles_list)
     plt.savefig(image_path+'compare_beta_new_cases_growth.png')
