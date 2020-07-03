@@ -382,7 +382,7 @@ def project_new_cases(new_cases_df, halflife_days=5):
 
 #-------------------------------------------------
 def create_projection_df(params, df, project_new_cases_indicator=0, 
-                         ultsurvivedate='2021-07-01'):
+                         ultsurvivedate='2021-04-01'):
     """
     adds to DataFrame df the negative binomial model deaths 
     (used to plot model projection for last set of parameters, params)
@@ -633,7 +633,7 @@ def investigate_seasonality(selected_country,image_path='C:/Users/Mark/Documents
 #---------------------------------------------------------------------------------
 def analyse_country(selected_country,
                     image_path='C:/Users/Mark/Documents/Python/code/covid19/latest/',
-                    ultsurvivedate='2021-07-01'):
+                    ultsurvivedate='2021-04-01'):
     """
     plots the following for string selected_country...
 
