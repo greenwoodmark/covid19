@@ -480,7 +480,7 @@ def create_projection_df(params, df, project_new_cases_indicator=0,
     return df, negbin_probabilities
 
 #---------------------------------------------------------------------------------
-def find_median_halflife_days(new_cases_df, HLD_list = [2,3,4,5,6,7,8,9,10]):
+def find_median_halflife_days(new_cases_df, HLD_list):
     """
     fit new_cases_rate(t) = exp(k + beta * t) using weighted least squares 
     and choose the median beta from halflife_days weighting in HLD_list
@@ -527,7 +527,8 @@ def compare_new_cases_rate_beta(country_list, last_n_days=10):
             new_cases_df = df[['new_cases','new_cases_rate']].head(df.shape[0]-j)
             mask = (new_cases_df['new_cases'].cumsum()>=100) #only fit after 100 cases
             new_cases_df = new_cases_df.loc[mask]
-            median_HLD, fit_dict = find_median_halflife_days(new_cases_df, HLD_list = [2,3,4,5,6,7,8,9,10])    
+            HLD_list = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+            median_HLD, fit_dict = find_median_halflife_days(new_cases_df, HLD_list = HLD_list)    
             summary_date = new_cases_df.index[-1]            
             country_df.at[summary_date,'median_HLD'] = median_HLD
             country_df.at[summary_date,'k'] = fit_dict[median_HLD]['k']
@@ -562,7 +563,8 @@ def compare_new_cases_rate_beta_test(country_list, last_n_days=10):
             #test effect of deaths remaining constant at this level
             new_cases_df['new_cases_rate'] = new_cases_df['new_cases'] / (new_cases_df['cases'].shift(1)+1e-10)
             new_cases_df['new_cases_rate'] = new_cases_df['new_cases_rate'].fillna(method='bfill')
-            median_HLD, fit_dict = find_median_halflife_days(new_cases_df, HLD_list = [2,3,4,5,6,7,8,9,10])    
+            HLD_list = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+            median_HLD, fit_dict = find_median_halflife_days(new_cases_df, HLD_list = HLD_list)    
             summary_date = new_cases_df.index[-1]            
             country_df.at[summary_date,'median_HLD'] = median_HLD
             country_df.at[summary_date,'k'] = fit_dict[median_HLD]['k']
@@ -733,10 +735,11 @@ def analyse_country(selected_country,
 
     mask = (new_cases_df['new_cases'].cumsum()>=100)
     new_cases_df = new_cases_df.loc[mask]
-    median_HLD, fit_dict = find_median_halflife_days(new_cases_df, HLD_list = [2,3,4,5,6,7,8,9,10])
+    HLD_list = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+    median_HLD, fit_dict = find_median_halflife_days(new_cases_df, HLD_list = HLD_list)
     
     median_beta = fit_dict[median_HLD]['beta']
-    
+
     print('use median beta in projection of',round(median_beta,4),'for halflife_days of',median_HLD)
     print()
 
