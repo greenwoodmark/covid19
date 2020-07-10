@@ -253,7 +253,7 @@ def fit_survival_negative_binomial(df, ew_halflife_days=50, verbose=True):
     
     """
 
-    bounds_tuple = ((0.1,0.98),(0.0,0.1),(0.25,0.75),(6.,10.))   #(s,p,n) bounds in optimiser
+    bounds_tuple = ((0.1,0.999),(0.0,0.1),(0.25,0.75),(6.,10.))   #(s,p,n) bounds in optimiser
     max_iterations = 50
     init_params_tuple = (0.75,0.001,0.4,10.0)
     
@@ -844,15 +844,28 @@ def analyse_country(selected_country,
         plot_df.at[~mask,'new_deaths'] = proj_df.loc[~mask,'new_deaths']
         plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
         
+        cumulative_deaths = proj_df['deaths'].resample('M').last()
+        
         title_str = selected_country+' model deaths with 90% confidence limits and daily seasonality,'+'\n '+title_text
         ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(13,7.5))
         ax.fill_between(plot_df['5% bound new_deaths'].index, plot_df['5% bound new_deaths'], plot_df['95% bound new_deaths'], 
-                        color='orange', alpha=.2)   
-    
+                        color='orange', alpha=.2)
         #indicate diminishing confidence in the confidence intervals
         for x in np.arange(-5,-95,-2):
             ax.fill_between(plot_df['5% bound new_deaths'].index[x:], plot_df['5% bound new_deaths'].tail(x*-1), plot_df['95% bound new_deaths'].tail(x*-1), 
                         color='white', alpha=.1)
+
+        #label cumulative deaths at each month end
+        label_x1 = cumulative_deaths.index[-4]
+        label_y1 = round(cumulative_deaths.iloc[-4]/1000,0)
+        locx1 = plot_df['model_new_deaths'].index.get_loc(label_x1)
+        locy1 = plot_df.iloc[locx1].loc['model_new_deaths']
+        fracy1 = locy1/plot_df['95% bound new_deaths'].max()
+        fracx1 = (locx1-40+1)/plot_df['model_new_deaths'].shape[0]
+        ax.annotate('{:.0f}'.format((label_y1))+'k deaths by '+label_x1.strftime('%Y-%m-%d'), 
+                     xy=(fracx1  , fracy1),  xycoords='axes fraction',
+                     xytext=(fracx1*0.7 , fracy1+0.25*(1-fracy1)), textcoords='axes fraction', 
+                     arrowprops=dict(arrowstyle="->"),)
         
         plt.ylabel('daily deaths')
         plt.ylim(ymin=0)        
