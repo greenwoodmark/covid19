@@ -804,10 +804,9 @@ def analyse_country(selected_country,
 
     print()
     current_deaths = int(df['deaths'].iloc[-1])
-    accum_deaths = int(proj_df['deaths'].iloc[-1])
-
-    title_text='cumulative deaths by '+proj_df.index[-1].strftime('%Y-%m-%d')+' of '+str(accum_deaths)
-    title_text+=', deaths to date '+ str(current_deaths)+' = ' +str(int(100*current_deaths/accum_deaths))+'%'
+    #accum_deaths = int(proj_df['deaths'].iloc[-1])
+    #title_text='cumulative deaths by '+proj_df.index[-1].strftime('%Y-%m-%d')+' of '+str(accum_deaths)
+    title_text='deaths to date '+ str(current_deaths) #+' = ' +str(int(100*current_deaths/accum_deaths))+'%'
     print(title_text)
     print()
 
@@ -846,8 +845,10 @@ def analyse_country(selected_country,
         
         cumulative_deaths = proj_df['deaths'].resample('M').last()
         
+        plot_df = plot_df.iloc[45:]   #start plotting from 45 days
+        
         title_str = selected_country+' model deaths with 90% confidence limits and daily seasonality,'+'\n '+title_text
-        ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(13,7.5))
+        ax = plot_df[['new_deaths','model_new_deaths']].iloc[0:].plot(title=title_str, figsize=(13,7.5))
         ax.fill_between(plot_df['5% bound new_deaths'].index, plot_df['5% bound new_deaths'], plot_df['95% bound new_deaths'], 
                         color='orange', alpha=.2)
         #indicate diminishing confidence in the confidence intervals
@@ -855,16 +856,37 @@ def analyse_country(selected_country,
             ax.fill_between(plot_df['5% bound new_deaths'].index[x:], plot_df['5% bound new_deaths'].tail(x*-1), plot_df['95% bound new_deaths'].tail(x*-1), 
                         color='white', alpha=.1)
 
+
         #label cumulative deaths at each month end
         label_x1 = cumulative_deaths.index[-4]
         label_y1 = round(cumulative_deaths.iloc[-4]/1000,0)
         locx1 = plot_df['model_new_deaths'].index.get_loc(label_x1)
-        locy1 = plot_df.iloc[locx1].loc['model_new_deaths']
+        locy1 = plot_df.rolling(window=7).max().iloc[locx1].loc['model_new_deaths']
         fracy1 = locy1/plot_df['95% bound new_deaths'].max()
-        fracx1 = (locx1-40+1)/plot_df['model_new_deaths'].shape[0]
+        fracx1 = (locx1+1)/plot_df['model_new_deaths'].shape[0]
         ax.annotate('{:.0f}'.format((label_y1))+'k deaths by '+label_x1.strftime('%Y-%m-%d'), 
-                     xy=(fracx1  , fracy1),  xycoords='axes fraction',
+                     xy=(fracx1  , fracy1*1.02),  xycoords='axes fraction',
                      xytext=(fracx1*0.7 , fracy1+0.25*(1-fracy1)), textcoords='axes fraction', 
+                     arrowprops=dict(arrowstyle="->"),)
+        label_x2 = cumulative_deaths.index[-3]
+        label_y2 = round(cumulative_deaths.iloc[-3]/1000,0)
+        locx2 = plot_df['model_new_deaths'].index.get_loc(label_x2)
+        locy2 = plot_df.rolling(window=7).max().iloc[locx2].loc['model_new_deaths']
+        fracy2 = locy2/plot_df['95% bound new_deaths'].max()
+        fracx2 = (locx2+1)/plot_df['model_new_deaths'].shape[0]
+        ax.annotate('{:.0f}'.format((label_y2))+'k deaths by '+label_x2.strftime('%Y-%m-%d'), 
+                     xy=(fracx2  , fracy2*1.02),  xycoords='axes fraction',
+                     xytext=(fracx2*0.7 , fracy2+0.5*(1-fracy2)), textcoords='axes fraction', 
+                     arrowprops=dict(arrowstyle="->"),)
+        label_x3 = cumulative_deaths.index[-2]
+        label_y3 = round(cumulative_deaths.iloc[-2]/1000,0)
+        locx3 = plot_df['model_new_deaths'].index.get_loc(label_x3)
+        locy3 = plot_df.rolling(window=7).max().iloc[locx3].loc['model_new_deaths']
+        fracy3 = locy3/plot_df['95% bound new_deaths'].max()
+        fracx3 = (locx3+1)/plot_df['model_new_deaths'].shape[0]
+        ax.annotate('{:.0f}'.format((label_y3))+'k deaths by '+label_x3.strftime('%Y-%m-%d'), 
+                     xy=(fracx3  , fracy3*1.02),  xycoords='axes fraction',
+                     xytext=(fracx3*0.7 , fracy3+0.75*(1-fracy3)), textcoords='axes fraction', 
                      arrowprops=dict(arrowstyle="->"),)
         
         plt.ylabel('daily deaths')
