@@ -856,13 +856,16 @@ def analyse_country(selected_country,
             ax.fill_between(plot_df['5% bound new_deaths'].index[x:], plot_df['5% bound new_deaths'].tail(x*-1), plot_df['95% bound new_deaths'].tail(x*-1), 
                         color='white', alpha=.1)
 
+        y_ax_max = plot_df['95% bound new_deaths'].fillna(0)
+        y_ax_max += plot_df['new_deaths'].fillna(0)
+        y_ax_max = y_ax_max.max()    
 
         #label cumulative deaths at each month end
         label_x1 = cumulative_deaths.index[-4]
         label_y1 = round(cumulative_deaths.iloc[-4]/1000,0)
         locx1 = plot_df['model_new_deaths'].index.get_loc(label_x1)
         locy1 = plot_df.rolling(window=7).max().iloc[locx1].loc['model_new_deaths']
-        fracy1 = locy1/plot_df['95% bound new_deaths'].max()
+        fracy1 = locy1/y_ax_max
         fracx1 = (locx1+1)/plot_df['model_new_deaths'].shape[0]
         ax.annotate('{:.0f}'.format((label_y1))+'k deaths by '+label_x1.strftime('%Y-%m-%d'), 
                      xy=(fracx1  , fracy1*1.02),  xycoords='axes fraction',
@@ -872,7 +875,7 @@ def analyse_country(selected_country,
         label_y2 = round(cumulative_deaths.iloc[-3]/1000,0)
         locx2 = plot_df['model_new_deaths'].index.get_loc(label_x2)
         locy2 = plot_df.rolling(window=7).max().iloc[locx2].loc['model_new_deaths']
-        fracy2 = locy2/plot_df['95% bound new_deaths'].max()
+        fracy2 = locy2/y_ax_max
         fracx2 = (locx2+1)/plot_df['model_new_deaths'].shape[0]
         ax.annotate('{:.0f}'.format((label_y2))+'k deaths by '+label_x2.strftime('%Y-%m-%d'), 
                      xy=(fracx2  , fracy2*1.02),  xycoords='axes fraction',
@@ -882,7 +885,7 @@ def analyse_country(selected_country,
         label_y3 = round(cumulative_deaths.iloc[-2]/1000,0)
         locx3 = plot_df['model_new_deaths'].index.get_loc(label_x3)
         locy3 = plot_df.rolling(window=7).max().iloc[locx3].loc['model_new_deaths']
-        fracy3 = locy3/plot_df['95% bound new_deaths'].max()
+        fracy3 = locy3/y_ax_max
         fracx3 = (locx3+1)/plot_df['model_new_deaths'].shape[0]
         ax.annotate('{:.0f}'.format((label_y3))+'k deaths by '+label_x3.strftime('%Y-%m-%d'), 
                      xy=(fracx3  , fracy3*1.02),  xycoords='axes fraction',
