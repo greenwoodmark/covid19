@@ -6,4 +6,5 @@
 *.csv*
 *.tmp*
 *.zip*
+*autocommit.py*
 
