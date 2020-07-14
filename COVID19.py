@@ -917,9 +917,8 @@ def analyse_country_mp(country_list):
     for result in results:
         print(result)
 
-#________________________________________________________________________________
-if __name__ == "__main__":
-    
+#---------------------------------------------------------------------------------    
+def main():
     country_list = ['United Kingdom','Italy','Spain','US','Sweden']
     country_list +=['Brazil','Germany','France','Japan','South Africa']
     original_DPI = plt.rcParams["figure.dpi"]
@@ -985,3 +984,8 @@ if __name__ == "__main__":
     
     print('data available for:')
     print(investigate_data())
+    return
+
+#________________________________________________________________________________
+if __name__ == "__main__":
+    main()
