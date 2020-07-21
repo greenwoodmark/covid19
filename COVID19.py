@@ -806,7 +806,7 @@ def analyse_country(selected_country,
     current_deaths = int(df['deaths'].iloc[-1])
     #accum_deaths = int(proj_df['deaths'].iloc[-1])
     #title_text='cumulative deaths by '+proj_df.index[-1].strftime('%Y-%m-%d')+' of '+str(accum_deaths)
-    title_text='deaths to date '+ str(current_deaths) #+' = ' +str(int(100*current_deaths/accum_deaths))+'%'
+    title_text='deaths to '+latest_data_date.strftime('%Y-%m-%d')+' of '+ str(current_deaths) #+' = ' +str(int(100*current_deaths/accum_deaths))+'%'
     print(title_text)
     print()
 
