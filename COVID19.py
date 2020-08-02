@@ -69,7 +69,7 @@ def prepare_data(country='United Kingdom', lockdown_date = None, URLnotfile = Tr
         
     df_c = pd.read_csv(read_c)   #global confirmed cases
     df_c['Province/State'] = df_c['Province/State'].fillna('ALL')
-    if country=='China':
+    if (country=='China' or country=='Australia'):
         df_cc = df_c.loc[(df_c['Country/Region']==country)].sum(axis=0)
         df_cc = pd.DataFrame(df_cc).T
     else:
@@ -87,7 +87,7 @@ def prepare_data(country='United Kingdom', lockdown_date = None, URLnotfile = Tr
         read_d = file_d
     df_d = pd.read_csv(read_d)   #global confirmed cases
     df_d['Province/State'] = df_d['Province/State'].fillna('ALL')
-    if country=='China':
+    if (country=='China' or country=='Australia'):
         df_dc = df_d.loc[(df_d['Country/Region']==country)].sum(axis=0)
         df_dc = pd.DataFrame(df_dc).T
     else:
@@ -919,10 +919,14 @@ def analyse_country_mp(country_list):
 
 #---------------------------------------------------------------------------------    
 def main():
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden']
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
     country_list +=['Brazil','Germany','France','Japan','South Africa']
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
+
+
+    #country_list = ['Australia']
+
 
     save_data()  #extract Johns Hopkins data and save locally
 
