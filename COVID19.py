@@ -924,10 +924,6 @@ def main():
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
-
-    #country_list = ['Australia']
-
-
     save_data()  #extract Johns Hopkins data and save locally
 
     image_path = 'latest/'
