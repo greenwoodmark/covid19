@@ -946,7 +946,7 @@ def main():
     
 
     #====================== plot evolution of beta parameters across countries
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Brazil']
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
 
     beta_n_days = 70
     
