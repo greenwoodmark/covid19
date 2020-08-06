@@ -11,11 +11,15 @@ For example, the new cases and deaths experience to date for the USA is:
 
 The model fits a time-varying survival rate and a negative binomial model for days until death given a new case does not survive:
 ![USA_survival](latest/US_survival.png)
+![USA_probabilities](latest/US_probabilities.png)
 
 The fitted projection for the model is then: 
 ![USA](latest/US.png)
 
 This projection shows a characteristic weekday reporting pattern:
 ![USA_daily_seasonality](latest/US_daily_seasonality.png)
+
+The new cases growth rate is critical. The chart below compares the evolution of this rate across countries and against the R0=1 reproduction rate boundary:
+![compare_beta_new_cases_growth](latest/compare_beta_new_cases_growth.png)
 
 The generous 1MB limit on a github repo accommodates about a year of historical charts.
