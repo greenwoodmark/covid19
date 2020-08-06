@@ -628,7 +628,10 @@ def investigate_seasonality(selected_country,image_path='C:/Users/Mark/Documents
     ax.spines['bottom'].set_position(('data', 1.0))
     ax.patch.set_edgecolor('grey')  
     ax.patch.set_linewidth('1')
-    plt.savefig(image_path+selected_country.upper()+'_daily_seasonality.png')
+    try:
+        plt.savefig(image_path+selected_country.upper()+'_daily_seasonality.png')
+    except:
+        print('failed to save plot as', (image_path+selected_country.upper()+'_daily_seasonality.png'))        
     plt.show()
     return seasonality_dict
     
@@ -700,11 +703,14 @@ def analyse_country(selected_country,
     mean = round(n*(1-p)/p,1)
     print(selected_country,'mean time until death', str(round(mean,1))
              ,' days between positive test result and death')
-    ax=pd.Series(negbin_probabilities[0:20]).plot.bar(figsize=(6,3.75))
+    ax=pd.Series(negbin_probabilities[0:20]).plot.bar(figsize=(6,3.5))
     
     ax.set_title(selected_country+' negative binomial probabilities for model fit at '
              +latest_data_date_str,fontsize=9.5)
-    plt.savefig(image_path+selected_country.upper()+'_probabilities.png')
+    try:
+        plt.savefig(image_path+selected_country.upper()+'_probabilities.png')
+    except:
+        print('failed to save plot as'+(image_path+selected_country.upper()+'_probabilities.png'))
     plt.show()
     #======================
 
@@ -717,11 +723,14 @@ def analyse_country(selected_country,
     ax = sdf[['s']].tail(30).plot(
             title='fitted survival rate, '+selected_country+' (trends to zero by '+ultsurvivedate+')',
             ylim=(50,100), 
-            figsize=(8,5.5))
+            figsize=(6,3.5))
     import matplotlib.ticker as mtick
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
     plt.grid()
-    plt.savefig(image_path+selected_country.upper()+'_survival.png')
+    try:
+        plt.savefig(image_path+selected_country.upper()+'_survival.png')
+    except:
+        print('failed to save plot as', (image_path+selected_country.upper()+'_survival.png'))        
     plt.show()
     #======================
 
@@ -799,7 +808,10 @@ def analyse_country(selected_country,
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1+h2, l1+l2, loc = 'best')  #'lower right'
     plt.ylim(ymin=0)        
-    plt.savefig(image_path+selected_country.upper()+'_cases_deaths'+'.png')
+    try:
+        plt.savefig(image_path+selected_country.upper()+'_cases_deaths'+'.png')
+    except:
+        print('failed to save plot as', (image_path+selected_country.upper()+'_survival.png'))        
     plt.show()
     #======================
 
@@ -895,7 +907,10 @@ def analyse_country(selected_country,
         
         plt.ylabel('daily deaths')
         plt.ylim(ymin=0)        
-        plt.savefig(image_path+selected_country.upper()+'.png')
+        try:
+            plt.savefig(image_path+selected_country.upper()+'.png')
+        except:
+            print('failed to save plot as', (image_path+selected_country.upper()+'.png'))        
         plt.show()
         #======================
     return ('analyse_country() for '+str(selected_country)+' completed')
@@ -965,7 +980,10 @@ def main():
     ax = beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.05), title = 
                  'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each date on x-axis', 
                  color=colors_list, style=styles_list)
-    plt.savefig(image_path+'compare_beta_new_cases_growth.png')
+    try:
+        plt.savefig(image_path+'compare_beta_new_cases_growth.png')
+    except:
+        print('failed to save plot as', (image_path+'compare_beta_new_cases_growth.png'))
     plt.show()
     #====================== 
 
