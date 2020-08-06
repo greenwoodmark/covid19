@@ -682,7 +682,7 @@ def analyse_country(selected_country,
     latest_data_date_str = df['latest_data_date'].iloc[0]
     ax = df[['new_deaths']].iloc[40:].plot(title=selected_country
            +' published daily new cases and deaths as at '
-           +latest_data_date_str, figsize=(10,6))
+           +latest_data_date_str, figsize=(9,5.4))
     plt.ylabel('new deaths')
     plt.ylim(ymin=0)
     ax2 = df['new_cases'].iloc[40:].plot(secondary_y=True, ax=ax, 
@@ -704,6 +704,7 @@ def analyse_country(selected_country,
     
     ax.set_title(selected_country+' negative binomial probabilities for model fit at '
              +latest_data_date_str,fontsize=9.5)
+    plt.savefig(image_path+selected_country.upper()+'_probabilties.png')
     plt.show()
     #======================
 
@@ -759,7 +760,7 @@ def analyse_country(selected_country,
     new_cases_df['new_cases_rate'] = new_cases_df['new_cases_rate'].rolling(window=7).mean()
     new_cases_df['new_cases_rate'] = new_cases_df['new_cases_rate'].fillna(0.0) 
 
-    fig, (ax, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(11, 5))
+    fig, (ax, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
     new_cases_df[['new_cases_rate','new_cases_rate_fitted']].loc[mask1].plot(ax=ax,logy=True)
     ax.set_title('new cases and fitted model exp('+str(round(k,4))+'+'+str(round(beta,5))+'t)', fontsize=11)
     new_cases_df[['new_cases_rate','new_cases_rate_fitted']].loc[mask2].plot(ax=ax2)
@@ -788,7 +789,7 @@ def analyse_country(selected_country,
         plot_df=plot_df.head(plot_df.shape[0]-70)
 
     title_str = selected_country+' model deaths (with projected new cases)'
-    ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(11.7,7))
+    ax = plot_df[['new_deaths','model_new_deaths']].iloc[40:].plot(title=title_str, figsize=(10,6))
     plt.ylabel('daily deaths')
     plt.ylim(ymin=0)        
     ax2 = plot_df[['new_cases','model_new_cases']].iloc[40:].plot(secondary_y=True, ax=ax, 
@@ -929,21 +930,10 @@ def main():
     image_path = 'latest/'
     image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
 
-    '''   OLD: ***serial processing getting slow so code commented out ***
-    for selected_country in country_list:
-        analyse_country(selected_country,image_path)
-        investigate_seasonality(selected_country,image_path) #saves charts
-    '''    
-
     print('using multiprocessing module to analyse each country - be patient!')
     analyse_country_mp(country_list)
 
-    '''   OLD: ***serial processing getting slow so code commented out ***
-    for selected_country in country_list:
-        investigate_seasonality(selected_country,image_path) #saves charts
-    '''    
     investigate_seasonality_mp(country_list)
-    
 
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
