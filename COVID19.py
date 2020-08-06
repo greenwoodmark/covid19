@@ -704,7 +704,7 @@ def analyse_country(selected_country,
     
     ax.set_title(selected_country+' negative binomial probabilities for model fit at '
              +latest_data_date_str,fontsize=9.5)
-    plt.savefig(image_path+selected_country.upper()+'_probabilties.png')
+    plt.savefig(image_path+selected_country.upper()+'_probabilities.png')
     plt.show()
     #======================
 
