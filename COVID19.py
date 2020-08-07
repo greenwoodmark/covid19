@@ -624,7 +624,7 @@ def investigate_seasonality(selected_country,image_path='C:/Users/Mark/Documents
     proj_df['weight'] = ew_halflife(proj_df.shape[0],ew_halflife_days)
     seasonality_dict = produce_seasonality_dict(proj_df)
     seasonality_Series = pd.Series(list(seasonality_dict.values()),['Mon','Tue','Wed','Thu','Fri','Sat','Sun'])
-    ax=seasonality_Series.plot(title='daily seasonality, '+selected_country,figsize=(10,6))
+    ax=seasonality_Series.plot(title='daily seasonality, '+selected_country,figsize=(6,3.5))
     ax.spines['bottom'].set_position(('data', 1.0))
     ax.patch.set_edgecolor('grey')  
     ax.patch.set_linewidth('1')
@@ -703,7 +703,7 @@ def analyse_country(selected_country,
     mean = round(n*(1-p)/p,1)
     print(selected_country,'mean time until death', str(round(mean,1))
              ,' days between positive test result and death')
-    ax=pd.Series(negbin_probabilities[0:20]).plot.bar(figsize=(6,3.5))
+    ax=pd.Series(negbin_probabilities[0:30]).plot.bar(figsize=(6,3.5))
     
     ax.set_title(selected_country+' negative binomial probabilities for model fit at '
              +latest_data_date_str,fontsize=9.5)
@@ -723,7 +723,7 @@ def analyse_country(selected_country,
     ax = sdf[['s']].tail(30).plot(
             title='fitted survival rate, '+selected_country+' (trends to zero by '+ultsurvivedate+')',
             ylim=(50,100), 
-            figsize=(6,3.5))
+            figsize=(6,4))
     import matplotlib.ticker as mtick
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
     plt.grid()
@@ -953,7 +953,7 @@ def main():
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
 
-    beta_n_days = 100
+    beta_n_days = 110
     
     #first check beta threshold at which new cases stay constant in absolute terms
     #(this is the R_0=1 line)
