@@ -3,6 +3,7 @@
 *.xls*
 *.doc*
 *checkpoint.ipynb
+*.ipynb_checkpoints
 *__pycache__*
 *.csv*
 *.tmp*
