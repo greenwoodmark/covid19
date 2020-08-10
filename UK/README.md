@@ -16,7 +16,7 @@ The fitted projection for the model is then:
 
 ## Weekday reporting patterns
 This projection shows a characteristic weekday reporting pattern:
-![UK_daily_seasonality](https://github.com/greenwoodmark/covid19/latest/UK_daily_seasonality.png)
+![UK_daily_seasonality](https://github.com/greenwoodmark/covid19/blob/master/latest/UNITED%20KINGDOM_daily_seasonality.png)
 
 ## Trends in new cases growth rates
 The new cases growth rate is critical. The chart below compares the evolution of this rate across countries and against the R0=1 reproduction rate boundary:
