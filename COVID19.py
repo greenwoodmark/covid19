@@ -934,9 +934,7 @@ def analyse_country_mp(country_list):
         print(result)
 
 #---------------------------------------------------------------------------------    
-def main():
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
-    country_list +=['Brazil','Germany','France','Japan','South Africa']
+def main(country_list):
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
@@ -996,4 +994,6 @@ def main():
 
 #________________________________________________________________________________
 if __name__ == "__main__":
-    main()
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
+    country_list +=['Brazil','Germany','France','Japan','South Africa']
+    main(country_list)
