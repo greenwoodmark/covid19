@@ -11,7 +11,7 @@ The model fits a time-varying survival rate and a negative binomial model for da
 ![UK_probabilities](https://github.com/greenwoodmark/covid19/blob/master/latest/AUSTRALIA_probabilities.png)
 
 ## Projected new cases and deaths
-The fitted projection for the model is then: 
+The fitted projection for the model is then (only shown if new cases growth rate is under control): 
 ![UK](https://github.com/greenwoodmark/covid19/blob/master/latest/AUSTRALIA.png)
 
 ## Weekday reporting patterns
