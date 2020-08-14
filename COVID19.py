@@ -1003,5 +1003,4 @@ def main(country_list, multiprocess_flag=True):
 if __name__ == "__main__":
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
     country_list +=['Brazil','Germany','France','Japan','South Africa']
-    
-    main(country_list)
+    main(country_list, multiprocess_flag=True)
