@@ -934,7 +934,7 @@ def analyse_country_mp(country_list):
         print(result)
 
 #---------------------------------------------------------------------------------    
-def main(country_list):
+def main(country_list, multiprocess_flag=True):
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
@@ -942,11 +942,18 @@ def main(country_list):
 
     image_path = 'latest/'
     image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
-
-    print('using multiprocessing module to analyse each country - be patient!')
-    analyse_country_mp(country_list)
-
-    investigate_seasonality_mp(country_list)
+    if multiprocess_flag:
+        print('using multiprocessing module to analyse each country - be patient!')
+        analyse_country_mp(country_list)
+    else:
+        for selected_country in country_list:
+            analyse_country(selected_country)
+    
+    if multiprocess_flag:
+        investigate_seasonality_mp(country_list)
+    else:
+        for selected_country in country_list:
+            investigate_seasonality(selected_country)
 
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
@@ -996,4 +1003,5 @@ def main(country_list):
 if __name__ == "__main__":
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
     country_list +=['Brazil','Germany','France','Japan','South Africa']
+    
     main(country_list)
