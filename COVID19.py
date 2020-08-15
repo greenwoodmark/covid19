@@ -833,10 +833,10 @@ def analyse_country(selected_country,
     if (median_beta<0.02):
         #======================  show confidence bounds only if case growth rate<0
         #90% confidence bounds assuming range between 5th and 95th percentile of residuals
-        if (selected_country == "Sweden") or (selected_country == "Japan"):
-            threshold_daily_deaths = 20
-        else:
-            threshold_daily_deaths = 100
+        #plot confidence intervals from when model_new_deaths exceed 5% of max deaths to date
+        #(this negates the need to vary the threshold by size of country)
+        threshold_daily_deaths = 0.05* proj_df['model_new_deaths'].max()
+            
         latest_data_date = proj_df['latest_data_date'].iloc[0]
         mask = (proj_df['model_new_deaths']>threshold_daily_deaths) & (proj_df.index<=latest_data_date)
         proj_df.at[mask,'error'] = proj_df.loc[mask,'new_deaths']-proj_df.loc[mask,'model_new_deaths']
@@ -1003,4 +1003,4 @@ def main(country_list, multiprocess_flag=True):
 if __name__ == "__main__":
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
     country_list +=['Brazil','Germany','France','Japan','South Africa']
-    main(country_list, multiprocess_flag=False)
+    main(country_list, multiprocess_flag=True)
