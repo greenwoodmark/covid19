@@ -27,4 +27,4 @@ This projection shows a characteristic weekday reporting pattern:
 The new cases growth rate is critical. The chart below compares the evolution of this rate across countries and against the R0=1 reproduction rate boundary:
 ![compare_beta_new_cases_growth](latest/compare_beta_new_cases_growth.png)
 
-The generous 1MB limit on a github repo accommodates about a year of historical charts.
+The generous 1GB limit on a github repo accommodates about a year of historical charts.
