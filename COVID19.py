@@ -947,18 +947,23 @@ def main(country_list, multiprocess_flag=True):
         analyse_country_mp(country_list)
     else:
         for selected_country in country_list:
-            analyse_country(selected_country)
+            try:
+                analyse_country(selected_country)
+            except:
+                print('analyse_country() failed for',selected_country) 
     
     if multiprocess_flag:
         investigate_seasonality_mp(country_list)
     else:
         for selected_country in country_list:
-            investigate_seasonality(selected_country)
-
+            try:
+                investigate_seasonality(selected_country)
+            except:
+                print('investigate_seasonality() failed for',selected_country) 
     #====================== plot evolution of beta parameters across countries
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
 
-    beta_n_days = 110
+    beta_n_days = 120
     
     #first check beta threshold at which new cases stay constant in absolute terms
     #(this is the R_0=1 line)
@@ -1003,4 +1008,5 @@ def main(country_list, multiprocess_flag=True):
 if __name__ == "__main__":
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
     country_list +=['Brazil','Germany','France','Japan','South Africa']
+
     main(country_list, multiprocess_flag=True)
