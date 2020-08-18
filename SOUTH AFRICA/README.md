@@ -3,20 +3,20 @@ Negative binomial model for projecting COVID-19 cases and deaths data by country
 
 ## Published daily new cases and deaths
 For example, the new cases and deaths experience to date for the USA is:
-![UK_cases_deaths](https://github.com/greenwoodmark/covid19/blob/master/latest/AUSTRALIA_cases_deaths.png)
+![UK_cases_deaths](https://github.com/greenwoodmark/covid19/blob/master/latest/SOUTH%20AFRICA_cases_deaths.png)
 
 ## Time-varying survival rates
 The model fits a time-varying survival rate and a negative binomial model for days until death given a new case does not survive:
-![UK_survival](https://github.com/greenwoodmark/covid19/blob/master/latest/AUSTRALIA_survival.png)
-![UK_probabilities](https://github.com/greenwoodmark/covid19/blob/master/latest/AUSTRALIA_probabilities.png)
+![UK_survival](https://github.com/greenwoodmark/covid19/blob/master/latest/SOUTH%20AFRICA_survival.png)
+![UK_probabilities](https://github.com/greenwoodmark/covid19/blob/master/latest/SOUTH%20AFRICA_probabilities.png)
 
 ## Projected new cases and deaths
 The fitted projection for the model is then (only shown if new cases growth rate is under control): 
-![UK](https://github.com/greenwoodmark/covid19/blob/master/latest/AUSTRALIA.png)
+![UK](https://github.com/greenwoodmark/covid19/blob/master/latest/SOUTH%20AFRICA.png)
 
 ## Weekday reporting patterns
 This projection shows a characteristic weekday reporting pattern:
-![UK_daily_seasonality](https://github.com/greenwoodmark/covid19/blob/master/latest/AUSTRALIA_daily_seasonality.png)
+![UK_daily_seasonality](https://github.com/greenwoodmark/covid19/blob/master/latest/SOUTH%20AFRICA_daily_seasonality.png)
 
 ## Trends in new cases growth rates
 The new cases growth rate is critical. The chart below compares the evolution of this rate across countries and against the R0=1 reproduction rate boundary:
