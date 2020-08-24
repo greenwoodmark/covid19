@@ -22,12 +22,21 @@ def ew_halflife(n, halflife):
 
 
 #---------------------------------------------------------------------------------
-def save_data(localpath='C:/Users/Mark/Documents/Python/code/covid19/'):
+def save_data():
     from urllib.request import urlretrieve
-    url_c = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
-    urlretrieve(url_c, localpath+'/time_series_covid19_confirmed_global.csv')
-    url_d = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
-    urlretrieve(url_d,localpath+'/time_series_covid19_deaths_global.csv')
+    from pathlib import Path
+    #using Pathlib, just pass a path or filename to Path() object 
+    #using forward slash, irrespective of the OS. Pathlib handles the rest.
+
+    retr_path_c = Path.cwd() / 'time_series_covid19_confirmed_global.csv'
+    url_c = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/'
+    url_c += 'csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
+    urlretrieve(url_c, retr_path_c)
+
+    retr_path_d = Path.cwd() / 'time_series_covid19_deaths_global.csv'
+    url_d = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/'
+    url_d += 'csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
+    urlretrieve(url_d,retr_path_d)
     return
 
 
@@ -605,12 +614,15 @@ def produce_seasonality_dict(proj_df):
 
 
 #---------------------------------------------------------------------------------
-def investigate_seasonality(selected_country,image_path='C:/Users/Mark/Documents/Python/code/covid19/latest/'):
+def investigate_seasonality(selected_country):
     """
     calculates and plots intra-week seasonality multipliers for daily deaths
     for selected_country, saving the results to image_path
     """    
     
+    from pathlib import Path
+    image_path = Path.cwd() / 'latest' 
+
     df = prepare_data(country = selected_country, lockdown_date = None, URLnotfile = False)
   
     ew_halflife_days=20
@@ -629,15 +641,14 @@ def investigate_seasonality(selected_country,image_path='C:/Users/Mark/Documents
     ax.patch.set_edgecolor('grey')  
     ax.patch.set_linewidth('1')
     try:
-        plt.savefig(image_path+selected_country.upper()+'_daily_seasonality.png')
+        plt.savefig(image_path / selected_country.upper()+'_daily_seasonality.png')
     except:
-        print('failed to save plot as', (image_path+selected_country.upper()+'_daily_seasonality.png'))        
+        print('failed to save plot as', (str(image_path)+selected_country.upper()+'_daily_seasonality.png'))        
     plt.show()
     return seasonality_dict
     
 #---------------------------------------------------------------------------------
 def analyse_country(selected_country,
-                    image_path='C:/Users/Mark/Documents/Python/code/covid19/latest/',
                     ultsurvivedate='2021-04-01'):
     """
     plots the following for string selected_country...
@@ -653,6 +664,8 @@ def analyse_country(selected_country,
     
     survival rates tend to 100% by ultsurvivedate linearly from latest fitted rate
     """    
+    from pathlib import Path
+    image_path = Path.cwd() / 'latest' 
     
     df = prepare_data(country = selected_country, lockdown_date = None, URLnotfile = False)
     
@@ -708,9 +721,9 @@ def analyse_country(selected_country,
     ax.set_title(selected_country+' negative binomial probabilities for model fit at '
              +latest_data_date_str,fontsize=9.5)
     try:
-        plt.savefig(image_path+selected_country.upper()+'_probabilities.png')
+        plt.savefig(image_path / selected_country.upper()+'_probabilities.png')
     except:
-        print('failed to save plot as'+(image_path+selected_country.upper()+'_probabilities.png'))
+        print('failed to save plot as'+(str(image_path)+selected_country.upper()+'_probabilities.png'))
     plt.show()
     #======================
 
@@ -728,9 +741,9 @@ def analyse_country(selected_country,
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
     plt.grid()
     try:
-        plt.savefig(image_path+selected_country.upper()+'_survival.png')
+        plt.savefig(image_path / selected_country.upper()+'_survival.png')
     except:
-        print('failed to save plot as', (image_path+selected_country.upper()+'_survival.png'))        
+        print('failed to save plot as', (str(image_path)+selected_country.upper()+'_survival.png'))        
     plt.show()
     #======================
 
@@ -809,9 +822,9 @@ def analyse_country(selected_country,
     ax.legend(h1+h2, l1+l2, loc = 'best')  #'lower right'
     plt.ylim(ymin=0)        
     try:
-        plt.savefig(image_path+selected_country.upper()+'_cases_deaths'+'.png')
+        plt.savefig(image_path / selected_country.upper()+'_cases_deaths'+'.png')
     except:
-        print('failed to save plot as', (image_path+selected_country.upper()+'_survival.png'))        
+        print('failed to save plot as', (str(image_path)+selected_country.upper()+'_survival.png'))        
     plt.show()
     #======================
 
@@ -908,9 +921,9 @@ def analyse_country(selected_country,
         plt.ylabel('daily deaths')
         plt.ylim(ymin=0)        
         try:
-            plt.savefig(image_path+selected_country.upper()+'.png')
+            plt.savefig(image_path / selected_country.upper()+'.png')
         except:
-            print('failed to save plot as', (image_path+selected_country.upper()+'.png'))        
+            print('failed to save plot as', (str(image_path)+selected_country.upper()+'.png'))        
         plt.show()
         #======================
     return ('analyse_country() for '+str(selected_country)+' completed')
@@ -938,10 +951,14 @@ def main(country_list, multiprocess_flag=True):
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
-    save_data()  #extract Johns Hopkins data and save locally
+    from pathlib import Path
+    #using Pathlib, just pass a path or filename to Path() object 
+    #using forward slash, irrespective of the OS. Pathlib handles the rest.
 
-    image_path = 'latest/'
-    image_path = 'C:/Users/Mark/Documents/Python/code/covid19/' +image_path
+    save_data() 
+
+    image_path = Path.cwd() / 'latest' 
+        
     if multiprocess_flag:
         print('using multiprocessing module to analyse each country - be patient!')
         analyse_country_mp(country_list)
@@ -973,8 +990,6 @@ def main(country_list, multiprocess_flag=True):
         cSeries = summary_dict2[country]['beta']; cSeries.name=country
         test_beta_df = pd.concat([test_beta_df,cSeries], axis=1)
     test_beta_df = test_beta_df.sort_index()     
-    #test_beta_df.plot(figsize=(10.5,6.25),ylim=(-0.1,0.0), title = 
-    #             'TEST beta parameter had new cases stayed constant in absolute terms')    
 
     summary_dict = compare_new_cases_rate_beta(country_list=country_list, last_n_days=beta_n_days)
     beta_df = pd.DataFrame()
@@ -991,9 +1006,9 @@ def main(country_list, multiprocess_flag=True):
                  'beta parameter for new cases rate curves exp(k+beta.t) fitted up to each date on x-axis', 
                  color=colors_list, style=styles_list)
     try:
-        plt.savefig(image_path+'compare_beta_new_cases_growth.png')
+        plt.savefig(image_path / 'compare_beta_new_cases_growth.png')
     except:
-        print('failed to save plot as', (image_path+'compare_beta_new_cases_growth.png'))
+        print('failed to save plot as', (str(image_path)+'compare_beta_new_cases_growth.png'))
     plt.show()
     #====================== 
 
