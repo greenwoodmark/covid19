@@ -46,7 +46,8 @@ def investigate_data():
     return list of countries in dataset
     """    
     #confirmed cases in time_series_covid19_confirmed_global.csv
-    url_c = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
+    url_c = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/'
+    url_c += 'csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
     df_c = pd.read_csv(url_c)   #global confirmed cases
     country_list = list(set(df_c['Country/Region']))
     country_list.sort() 
@@ -67,9 +68,12 @@ def prepare_data(country='United Kingdom', lockdown_date = None, URLnotfile = Tr
 
     """    
 
+    from pathlib import Path
+
     #confirmed cases in time_series_covid19_confirmed_global.csv
-    url_c = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
-    file_c = 'C:/Users/Mark/Documents/Python/code/covid19/time_series_covid19_confirmed_global.csv'
+    url_c = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/'
+    url_c += 'csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'    
+    file_c = Path.cwd() / 'time_series_covid19_confirmed_global.csv'
     
     if URLnotfile:
         read_c = url_c #url_c or local file_c if saved already
@@ -88,8 +92,9 @@ def prepare_data(country='United Kingdom', lockdown_date = None, URLnotfile = Tr
     df_cc.index = pd.to_datetime(df_cc.index)
     
     #deaths in time_series_covid19_deaths_global.csv
-    url_d = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
-    file_d = 'C:/Users/Mark/Documents/Python/code/covid19/time_series_covid19_deaths_global.csv'
+    url_d = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master'
+    url_d += '/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
+    file_d = Path.cwd() / 'time_series_covid19_deaths_global.csv'
     if (read_c==url_c):
         read_d = url_d #url_d or local file_d if saved already
     else:
@@ -148,13 +153,13 @@ def prepare_data_OWID(country='United Kingdom', lockdown_date = None, URLnotfile
     
     ***but date labels all shifted by 1 day***
     
+    """
     
-    """    
+    from pathlib import Path
 
     #confirmed cases in time_series_covid19_confirmed_global.csv
-    url_c = 'https://covid.ourworldindata.org/data/ecdc/total_cases.csv'
-    file_c = 'C:/Users/Mark/Documents/Python/code/covid19/time_series_covid19_confirmed_global.csv'
-    
+    url_c = 'https://covid.ourworldindata.org/data/ecdc/total_cases.csv'    
+    file_c = Path.cwd() / 'time_series_covid19_confirmed_global.csv'
     if URLnotfile:
         read_c = url_c #url_c or local file_c if saved already
     else:
@@ -182,7 +187,7 @@ def prepare_data_OWID(country='United Kingdom', lockdown_date = None, URLnotfile
     
     #deaths in time_series_covid19_deaths_global.csv
     url_d = 'https://covid.ourworldindata.org/data/ecdc/total_deaths.csv'
-    file_d = 'C:/Users/Mark/Documents/Python/code/covid19/time_series_covid19_deaths_global.csv'
+    file_d = Path.cwd() / 'time_series_covid19_deaths_global.csv'
     if (read_c==url_c):
         read_d = url_d #url_d or local file_d if saved already
     else:
