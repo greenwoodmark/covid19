@@ -646,7 +646,7 @@ def investigate_seasonality(selected_country):
     ax.patch.set_edgecolor('grey')  
     ax.patch.set_linewidth('1')
     try:
-        plt.savefig(image_path / selected_country.upper()+'_daily_seasonality.png')
+        plt.savefig(image_path / (selected_country.upper()+'_daily_seasonality.png'))
     except:
         print('failed to save plot as', (str(image_path)+selected_country.upper()+'_daily_seasonality.png'))        
     plt.show()
@@ -726,7 +726,7 @@ def analyse_country(selected_country,
     ax.set_title(selected_country+' negative binomial probabilities for model fit at '
              +latest_data_date_str,fontsize=9.5)
     try:
-        plt.savefig(image_path / selected_country.upper()+'_probabilities.png')
+        plt.savefig(image_path / (selected_country.upper() + '_probabilities.png'))
     except:
         print('failed to save plot as'+(str(image_path)+selected_country.upper()+'_probabilities.png'))
     plt.show()
@@ -746,7 +746,7 @@ def analyse_country(selected_country,
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
     plt.grid()
     try:
-        plt.savefig(image_path / selected_country.upper()+'_survival.png')
+        plt.savefig(image_path / (selected_country.upper()+'_survival.png'))
     except:
         print('failed to save plot as', (str(image_path)+selected_country.upper()+'_survival.png'))        
     plt.show()
@@ -827,7 +827,7 @@ def analyse_country(selected_country,
     ax.legend(h1+h2, l1+l2, loc = 'best')  #'lower right'
     plt.ylim(ymin=0)        
     try:
-        plt.savefig(image_path / selected_country.upper()+'_cases_deaths'+'.png')
+        plt.savefig(image_path / (selected_country.upper()+'_cases_deaths'+'.png'))
     except:
         print('failed to save plot as', (str(image_path)+selected_country.upper()+'_survival.png'))        
     plt.show()
@@ -926,7 +926,7 @@ def analyse_country(selected_country,
         plt.ylabel('daily deaths')
         plt.ylim(ymin=0)        
         try:
-            plt.savefig(image_path / selected_country.upper()+'.png')
+            plt.savefig(image_path / (selected_country.upper()+'.png'))
         except:
             print('failed to save plot as', (str(image_path)+selected_country.upper()+'.png'))        
         plt.show()
