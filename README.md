@@ -28,7 +28,7 @@ The new cases growth rate is critical. The chart below compares the evolution of
 ![compare_beta_new_cases_growth](latest/compare_beta_new_cases_growth.png)
 
 ## Dependencies
-Python 3.7+ and libraries pandas, matplotlib, numpy, scipy, statsmodels. See ![requirements.txt](requirements.txt).
+Python 3.7+ and packages: pandas, matplotlib, numpy, scipy, statsmodels. See ![requirements.txt](requirements.txt).
 
 ## Charts archive
 The generous 1GB limit on a github repo accommodates about a year of historical charts.
