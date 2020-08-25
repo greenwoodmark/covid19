@@ -432,7 +432,7 @@ def create_projection_df(params, df, project_new_cases_indicator=0,
 
     #reindex df to index_list to add 100 days projected deaths, etc.
     df = df.reindex(index_list)
-    df['cases']=df['cases'].fillna(method='ffill')   #TODO add growth using cases_growth_rate
+    df['cases']=df['cases'].fillna(method='ffill')
     df['deaths']=df['deaths'].fillna(method='ffill')
 
     #100% survival by ultsurvivedate, prorated to last day in df
