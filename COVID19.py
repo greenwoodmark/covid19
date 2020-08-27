@@ -650,6 +650,7 @@ def investigate_seasonality(selected_country):
     except:
         print('failed to save plot as', (str(image_path)+selected_country.upper()+'_daily_seasonality.png'))        
     plt.show()
+    plt.close()
     return seasonality_dict
     
 #---------------------------------------------------------------------------------
@@ -714,6 +715,7 @@ def analyse_country(selected_country,
     ax.legend(h1+h2, l1+l2, loc = 'upper left')  #'lower right'    
     plt.ylim(ymin=0)
     plt.show()
+    plt.close()
     #======================
 
 
@@ -730,6 +732,7 @@ def analyse_country(selected_country,
     except:
         print('failed to save plot as'+(str(image_path)+selected_country.upper()+'_probabilities.png'))
     plt.show()
+    plt.close()
     #======================
 
 
@@ -750,6 +753,7 @@ def analyse_country(selected_country,
     except:
         print('failed to save plot as', (str(image_path)+selected_country.upper()+'_survival.png'))        
     plt.show()
+    plt.close()
     #======================
 
 
@@ -795,6 +799,7 @@ def analyse_country(selected_country,
     ax2.set_title('latest 20 observations', fontsize=11)
     fig.tight_layout()
     plt.show()
+    plt.close()
     #======================
 
         
@@ -831,6 +836,7 @@ def analyse_country(selected_country,
     except:
         print('failed to save plot as', (str(image_path)+selected_country.upper()+'_survival.png'))        
     plt.show()
+    plt.close()
     #======================
 
     print()
@@ -930,6 +936,7 @@ def analyse_country(selected_country,
         except:
             print('failed to save plot as', (str(image_path)+selected_country.upper()+'.png'))        
         plt.show()
+        plt.close()
         #======================
     return ('analyse_country() for '+str(selected_country)+' completed')
     
@@ -1015,6 +1022,7 @@ def main(country_list, multiprocess_flag=True):
     except:
         print('failed to save plot as', (str(image_path)+'compare_beta_new_cases_growth.png'))
     plt.show()
+    plt.close()
     #====================== 
 
     #restore orginal plot density parameters
