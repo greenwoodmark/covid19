@@ -54,6 +54,30 @@ def investigate_data():
     return country_list
 
 #---------------------------------------------------------------------------------
+def create_new_archive_last_dir():
+    """
+    create latest dated directory and archive previous date
+    today_str is of the form 'YYMMDD'
+    """
+    from pathlib import Path
+    import datetime as dt
+    today_str = dt.datetime.now().strftime('%Y%m%d')
+    ydatetime = dt.datetime.now() - dt.timedelta(days=1)
+    yday_str = ydatetime.strftime('%Y%m%d')
+    source_dir =  Path.cwd() / yday_str
+    destin_dir =  Path.cwd() / 'archive' / yday_str
+    import shutil
+    import os
+    shutil.copytree(source_dir, destin_dir)
+    import os, stat
+    os.chmod(source_dir, stat.S_IWRITE)  #in case dir is read only so cannot be deleted
+    shutil.rmtree(source_dir)
+    source_dir =  Path.cwd() / 'latest'
+    destin_dir =  Path.cwd() / today_str
+    shutil.copytree(source_dir, destin_dir)
+    
+    
+#---------------------------------------------------------------------------------
 def prepare_data(country='United Kingdom', lockdown_date = None, URLnotfile = True):
     """
     extract Johns Hopkins COVID-19 cases and deaths data by country from github urls
