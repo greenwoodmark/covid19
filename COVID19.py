@@ -747,7 +747,7 @@ def analyse_country(selected_country,
     mean = round(n*(1-p)/p,1)
     print(selected_country,'mean time until death', str(round(mean,1))
              ,' days between positive test result and death')
-    ax=pd.Series(negbin_probabilities[0:30]).plot.bar(figsize=(6,3.5))
+    ax=pd.Series(negbin_probabilities[0:40]).plot.bar(figsize=(6,3.5))
     
     ax.set_title(selected_country+' negative binomial probabilities for model fit at '
              +latest_data_date_str,fontsize=9.5)
