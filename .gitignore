@@ -8,4 +8,6 @@
 *.csv*
 *.tmp*
 *.zip*
+*.ini*
+*temp*
 
