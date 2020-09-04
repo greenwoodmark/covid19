@@ -389,7 +389,8 @@ def fit_model(initparams, hyperparams, bounds, maxiter):
 
   
 #---------------------------------------------------------------------------------
-def project_new_cases(new_cases_df, halflife_days=5):
+def project_new_cases(new_cases_df, 
+                      halflife_days=5):
     """
     WLS projected new_cases_rate using halflife in days 
     The projection new_cases_rate(t) = exp(k + beta*t) is fitted via log transformation 
@@ -419,7 +420,8 @@ def project_new_cases(new_cases_df, halflife_days=5):
     return (new_cases_df, k, beta)
 
 #-------------------------------------------------
-def create_projection_df(params, df, project_new_cases_indicator=0, 
+def create_projection_df(params, df, 
+                         project_new_cases_indicator=0, 
                          ultsurvivedate='2021-04-01'):
     """
     adds to DataFrame df the negative binomial model deaths 
@@ -579,7 +581,8 @@ def compare_new_cases_rate_beta(country_list, last_n_days=10):
 
 
 #---------------------------------------------------------------------------------
-def compare_new_cases_rate_beta_test(country_list, last_n_days=10):
+def compare_new_cases_rate_beta_test(country_list, 
+                                     last_n_days=10):
     """
     test scenario: 
     how negative would fitted beta be had new cases stayed constant in absolute terms?
@@ -643,7 +646,8 @@ def produce_seasonality_dict(proj_df):
 
 
 #---------------------------------------------------------------------------------
-def investigate_seasonality(selected_country):
+def investigate_seasonality(selected_country, 
+                            show_chart_plots=False):
     """
     calculates and plots intra-week seasonality multipliers for daily deaths
     for selected_country, saving the results to image_path
@@ -673,13 +677,15 @@ def investigate_seasonality(selected_country):
         plt.savefig(image_path / (selected_country.upper()+'_daily_seasonality.png'))
     except:
         print('failed to save plot as', (str(image_path)+selected_country.upper()+'_daily_seasonality.png'))        
-    plt.show()
+    if show_chart_plots:
+        plt.show()
     plt.close()
     return seasonality_dict
     
 #---------------------------------------------------------------------------------
 def analyse_country(selected_country,
-                    ultsurvivedate='2021-04-01'):
+                    ultsurvivedate='2021-04-01',
+                    show_chart_plots=True):
     """
     plots the following for string selected_country...
 
@@ -738,7 +744,8 @@ def analyse_country(selected_country,
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1+h2, l1+l2, loc = 'upper left')  #'lower right'    
     plt.ylim(ymin=0)
-    plt.show()
+    if show_chart_plots:
+        plt.show()
     plt.close()
     #======================
 
@@ -755,7 +762,8 @@ def analyse_country(selected_country,
         plt.savefig(image_path / (selected_country.upper() + '_probabilities.png'))
     except:
         print('failed to save plot as'+(str(image_path)+selected_country.upper()+'_probabilities.png'))
-    plt.show()
+    if show_chart_plots:
+        plt.show()
     plt.close()
     #======================
 
@@ -776,7 +784,8 @@ def analyse_country(selected_country,
         plt.savefig(image_path / (selected_country.upper()+'_survival.png'))
     except:
         print('failed to save plot as', (str(image_path)+selected_country.upper()+'_survival.png'))        
-    plt.show()
+    if show_chart_plots:
+        plt.show()
     plt.close()
     #======================
 
@@ -822,7 +831,8 @@ def analyse_country(selected_country,
     #ax2.set_title('new_cases_rate_fitted(t) = exp(k+t.beta)', fontsize=11) 
     ax2.set_title('latest 20 observations', fontsize=11)
     fig.tight_layout()
-    plt.show()
+    if show_chart_plots:
+        plt.show()
     plt.close()
     #======================
 
@@ -859,7 +869,8 @@ def analyse_country(selected_country,
         plt.savefig(image_path / (selected_country.upper()+'_cases_deaths'+'.png'))
     except:
         print('failed to save plot as', (str(image_path)+selected_country.upper()+'_survival.png'))        
-    plt.show()
+    if show_chart_plots:
+        plt.show()
     plt.close()
     #======================
 
@@ -959,7 +970,8 @@ def analyse_country(selected_country,
             plt.savefig(image_path / (selected_country.upper()+'.png'))
         except:
             print('failed to save plot as', (str(image_path)+selected_country.upper()+'.png'))        
-        plt.show()
+        if show_chart_plots:
+            plt.show()
         plt.close()
         #======================
     return ('analyse_country() for '+str(selected_country)+' completed')
@@ -983,7 +995,13 @@ def analyse_country_mp(country_list):
         print(result)
 
 #---------------------------------------------------------------------------------    
-def main(country_list, multiprocess_flag=True):
+def main(country_list, 
+         multiprocess_flag=True, 
+         show_chart_plots=False):
+    """
+    save charts for all countries in country_list 
+    and plot them according to show_chart_plots
+    """
     original_DPI = plt.rcParams["figure.dpi"]
     plt.rcParams["figure.dpi"] = 100  #higher DPI plots
 
@@ -1001,7 +1019,8 @@ def main(country_list, multiprocess_flag=True):
     else:
         for selected_country in country_list:
             try:
-                analyse_country(selected_country)
+                analyse_country(selected_country, 
+                                show_chart_plots = show_chart_plots)
             except:
                 print('analyse_country() failed for',selected_country) 
     
@@ -1010,7 +1029,8 @@ def main(country_list, multiprocess_flag=True):
     else:
         for selected_country in country_list:
             try:
-                investigate_seasonality(selected_country)
+                investigate_seasonality(selected_country,
+                                        show_chart_plots = show_chart_plots)
             except:
                 print('investigate_seasonality() failed for',selected_country) 
     #====================== plot evolution of beta parameters across countries
@@ -1045,7 +1065,8 @@ def main(country_list, multiprocess_flag=True):
         plt.savefig(image_path / 'compare_beta_new_cases_growth.png')
     except:
         print('failed to save plot as', (str(image_path)+'compare_beta_new_cases_growth.png'))
-    plt.show()
+    if show_chart_plots:
+        plt.show()
     plt.close()
     #====================== 
 
@@ -1061,4 +1082,4 @@ if __name__ == "__main__":
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
     country_list +=['Brazil','Germany','France','Japan','South Africa']
 
-    main(country_list, multiprocess_flag=True)
+    main(country_list, multiprocess_flag=True, show_chart_plots=False)
