@@ -11,4 +11,4 @@
 *.ini*
 *temp*
 *sps*
-*vscode*
+*.vscode
