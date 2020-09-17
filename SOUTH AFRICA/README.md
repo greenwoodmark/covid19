@@ -2,7 +2,7 @@
 Negative binomial model for projecting COVID-19 cases and deaths data by country, provided by Johns Hopkins University CSSE at [CSSEGISandData/COVID-19](https://github.com/CSSEGISandData/COVID-19).
 
 ## Published daily new cases and deaths
-For example, the new cases and deaths experience to date for the USA is:
+For example, the new cases and deaths experience to date for South Africa is:
 ![UK_cases_deaths](https://github.com/greenwoodmark/covid19/blob/master/latest/SOUTH%20AFRICA_cases_deaths.png)
 
 ## Time-varying survival rates
