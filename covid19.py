@@ -1081,5 +1081,4 @@ def main(country_list,
 if __name__ == "__main__":
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
     country_list +=['Brazil','Germany','France','Japan','South Africa']
-    country_list = ['United Kingdom']
     main(country_list, multiprocess_flag=True, show_chart_plots=False)
