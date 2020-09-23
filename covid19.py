@@ -889,7 +889,7 @@ def analyse_country(selected_country,
     proj_df['model_new_deaths'] *=  proj_df['seas_multiplier'] 
     
 
-    if (median_beta<0.02):
+    if (median_beta<0.025):
         #======================  show confidence bounds only if case growth rate<0
         #90% confidence bounds assuming range between 5th and 95th percentile of residuals
         #plot confidence intervals from when model_new_deaths exceed 5% of max deaths to date
@@ -1081,5 +1081,4 @@ def main(country_list,
 if __name__ == "__main__":
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
     country_list +=['Brazil','Germany','France','Japan','South Africa']
-
     main(country_list, multiprocess_flag=True, show_chart_plots=False)
