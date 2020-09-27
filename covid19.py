@@ -465,7 +465,8 @@ def create_projection_df(params, df,
     improvement_ratio = (100.0/(pd.Timestamp(ultsurvivedate)-df.index[-1]).days)        
     df.at[df.index[-1],'s'] = lastsurvivalrate + improvement_ratio*(1-lastsurvivalrate)
     df['s'] = df['s'].interpolate('linear')
-    
+    #2020-09-27: the survival rate should not exceed 99.99%
+    df['s'] = df['s'].apply(lambda x: min(0.9999,x))    
     df = df.fillna(0.0)
         
     days_limit = df.index.shape[0]  #we limit this to prevent the fitting taking too long
@@ -851,7 +852,11 @@ def analyse_country(selected_country,
     plot_df.at[~mask,'new_deaths'] = proj_df.loc[~mask,'new_deaths']
     plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
 
-    if (median_beta>-0.03):   #only project 30 days if cases growth rate not too out of control
+    if (median_beta>0.02):   #only project for limited days if cases growth rate high
+        plot_df=plot_df.head(plot_df.shape[0]-90)
+    elif (median_beta>-0.0):   
+        plot_df=plot_df.head(plot_df.shape[0]-80)
+    elif (median_beta>-0.02):   
         plot_df=plot_df.head(plot_df.shape[0]-70)
 
     title_str = selected_country+' model deaths (with projected new cases)'
@@ -894,8 +899,8 @@ def analyse_country(selected_country,
         #90% confidence bounds assuming range between 5th and 95th percentile of residuals
         #plot confidence intervals from when model_new_deaths exceed 5% of max deaths to date
         #(this negates the need to vary the threshold by size of country)
-        threshold_daily_deaths = 0.05* proj_df['model_new_deaths'].max()
-            
+        mask = (proj_df.index<=latest_data_date)
+        threshold_daily_deaths = 0.05* proj_df.loc[mask,'model_new_deaths'].max()
         latest_data_date = proj_df['latest_data_date'].iloc[0]
         mask = (proj_df['model_new_deaths']>threshold_daily_deaths) & (proj_df.index<=latest_data_date)
         proj_df.at[mask,'error'] = proj_df.loc[mask,'new_deaths']-proj_df.loc[mask,'model_new_deaths']
