@@ -851,7 +851,7 @@ def analyse_country(selected_country,
     plot_df.at[~mask,'new_deaths'] = proj_df.loc[~mask,'new_deaths']
     plot_df.at[~mask,'new_cases'] = proj_df.loc[~mask,'new_cases']
 
-    if (median_beta>-0.01):   #only project 30 days if cases growth rate not under control
+    if (median_beta>-0.03):   #only project 30 days if cases growth rate not too out of control
         plot_df=plot_df.head(plot_df.shape[0]-70)
 
     title_str = selected_country+' model deaths (with projected new cases)'
