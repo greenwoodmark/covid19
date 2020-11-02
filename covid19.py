@@ -277,7 +277,8 @@ def prepare_data_OWID(country='United Kingdom', lockdown_date = None, URLnotfile
 def fit_survival_negative_binomial(df, ew_halflife_days=50, verbose=True):
     """
     fits and adds parameters (a,b,n,p) each day from day 30 
-    to the DataFrame df. Here a and b are the linear trend for the survival rate, s. 
+    to the DataFrame df. Here a and b relate to survival rate as 
+    s = a*(1-exp(bt))
     
     each day row in fit range [0,m] has weight  (1-alpha)**(m-row)
     where alpha = 1-exp(ln(0.5)/ew_halflife_days)
