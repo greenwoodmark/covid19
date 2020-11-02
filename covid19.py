@@ -276,8 +276,8 @@ def prepare_data_OWID(country='United Kingdom', lockdown_date = None, URLnotfile
 
 def fit_survival_negative_binomial(df, ew_halflife_days=50, verbose=True):
     """
-    fits and adds parameters (s,n,p) each day from day 30 
-    to the DataFrame df
+    fits and adds parameters (a,b,n,p) each day from day 30 
+    to the DataFrame df. Here a and b are the linear trend for the survival rate, s. 
     
     each day row in fit range [0,m] has weight  (1-alpha)**(m-row)
     where alpha = 1-exp(ln(0.5)/ew_halflife_days)
@@ -286,12 +286,12 @@ def fit_survival_negative_binomial(df, ew_halflife_days=50, verbose=True):
     
     Notes
     =====
-    bounds_tuple for (s, p, n) can be adjusted to ensure expected time to death,
-    mu = n*p/(1-p), is within desired range. At present 2 < mu < 30 days
+    bounds_tuple for (a, b, p, n) can be adjusted to ensure expected time to death,
+    mu = n*p/(1-p), is within desired range. At present 2 < mu < 60 days
     
     """
 
-    bounds_tuple = ((0.1,0.995),(0.0,0.1),(0.25,0.75),(6.,10.))   #(s,p,n) bounds in optimiser
+    bounds_tuple = ((0.1,0.995),(0.0,0.1),(0.25,0.75),(6.,20.))   #(a,b,p,n) bounds in optimiser
     max_iterations = 50
     init_params_tuple = (0.75,0.001,0.4,10.0)
     
@@ -420,7 +420,8 @@ def project_new_cases(new_cases_df,
     return (new_cases_df, k, beta)
 
 #-------------------------------------------------
-def create_projection_df(params, df, 
+def create_projection_df(params, 
+                         df, 
                          project_new_cases_indicator=0, 
                          ultsurvivedate='2021-04-01'):
     """
