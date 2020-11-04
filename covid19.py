@@ -50,6 +50,8 @@ def investigate_data():
     url_c += 'csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
     df_c = pd.read_csv(url_c)   #global confirmed cases
     country_list = list(set(df_c['Country/Region']))
+    import numpy as np
+    country_list = [c for c in country_list if c is not np.nan]
     country_list.sort() 
     return country_list
 
