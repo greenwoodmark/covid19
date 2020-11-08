@@ -327,6 +327,40 @@ def fit_survival_negative_binomial(df, ew_halflife_days=50, verbose=True):
 
 
 #---------------------------------------------------------------------------------
+def model_predicted_deaths(params, hyperparams):
+    """
+    model daily deaths based on error function used with fitting function fit_model()
+    """
+    a,b,p,n = params    #then s varies with time as a*(1-exp(bt)) 
+    df = hyperparams
+    
+    if 'lockdown' in df.columns:   #may choose to only fit error after this date
+        lockdown_date = pd.Timestamp(df['lockdown'].iloc[0]) 
+        df = df.loc[df.index>=lockdown_date]   
+        
+    #get model projection on latest date using this latest set of parameters
+    days_limit = df.index.shape[0]  #we limit this to prevent the fitter taking too long
+    arr = np.array(range(days_limit))  #we limit analysis to days_limit after infection
+    nbpr = lambda x: nbinom.pmf(x, n, p)
+    negbin_probabilities = nbpr(arr)
+    num_rows = df.index.shape[0]
+    num_cols = negbin_probabilities.shape[0]+num_rows
+    pmatrix = np.zeros((num_rows,num_cols))
+    for m in range(num_rows):
+        front_pad_cols = m
+        back_pad_cols = num_rows-m
+        pmatrix[m,:] = np.pad(negbin_probabilities, (front_pad_cols, back_pad_cols),
+               'constant', constant_values=(0, 0))
+        
+    nmd_prob = np.matmul(df['new_cases'].to_numpy().reshape(1,-1).astype(float),
+                         pmatrix.astype(float))
+    s_array = a + b * np.arange(-1*num_rows+1,1)
+    model_new_deaths = nmd_prob[:,:num_rows] * (1-s_array)
+    return model_new_deaths.squeeze()[-1]
+
+
+
+#---------------------------------------------------------------------------------
 def fit_err(params, hyperparams):
     """
     error function used with fitting function fit_model()
@@ -426,7 +460,7 @@ def project_new_cases(new_cases_df,
 def create_projection_df(params, 
                          df, 
                          project_new_cases_indicator=0, 
-                         ultsurvivedate='2021-04-01'):
+                         ultsurvivedate='2021-07-01'):
     """
     adds to DataFrame df the negative binomial model deaths 
     (used to plot model projection for last set of parameters, params)
@@ -689,7 +723,7 @@ def investigate_seasonality(selected_country,
     
 #---------------------------------------------------------------------------------
 def analyse_country(selected_country,
-                    ultsurvivedate='2021-04-01',
+                    ultsurvivedate='2021-07-01',
                     show_chart_plots=True):
     """
     plots the following for string selected_country...
@@ -726,13 +760,19 @@ def analyse_country(selected_country,
 
     proj_df,negbin_probabilities = create_projection_df(params=params, df=df.copy(), 
                                                         project_new_cases_indicator=False)
+ 
+    #add past_model_fitted_deaths based on parameters at each past date
+    for r in df.dropna().index:
+        row_params = tuple(proj_df.loc[r,['a','b','p','n']].values)
+        row_df = df.loc[df.index<=r]
+        df.at[r,'past_model_fitted_deaths'] = model_predicted_deaths(row_params, row_df)
 
+    
     proj_df['weight'] = ew_halflife(proj_df.shape[0],ew_halflife_days)
     seasonality_dict = produce_seasonality_dict(proj_df)
     
     proj_df['new_deaths'] = proj_df['new_deaths'].replace(0.0, np.nan) #don't plot zero values
     proj_df['new_cases'] = proj_df['new_cases'].replace(0.0, np.nan) #don't plot zero values
-    
     
     
     #======================                          plot cases, deaths to date
@@ -773,12 +813,12 @@ def analyse_country(selected_country,
     #======================
 
 
-    #====================== evolution of fitted survival rates, s, last 30 days
+    #====================== evolution of fitted survival rates, s, last 180 days
     survivalrate_Series = a + b * np.arange(-1*df.shape[0]+1,1)
     survivalrate_Series = survivalrate_Series*100 #in percent
    
     sdf = pd.DataFrame(survivalrate_Series, columns=['s'], index=df.index)
-    ax = sdf[['s']].tail(30).plot(
+    ax = sdf[['s']].tail(180).plot(
             title='fitted survival rate, '+selected_country+' (trends to zero by '+ultsurvivedate+')',
             ylim=(50,100), 
             figsize=(6,4))
@@ -850,6 +890,11 @@ def analyse_country(selected_country,
         
     #======================  show the mid projection
     plot_df = proj_df[['model_new_deaths']]
+    #override 'model_new_deaths' with 'past_model_fitted_deaths' to show historical goodness-of-fit
+    latest_data_date = pd.Timestamp(proj_df['latest_data_date'].iloc[0])
+    overwrite_mask = plot_df.index<latest_data_date
+    plot_df.at[overwrite_mask,'model_new_deaths']=proj_df.loc[overwrite_mask,'past_model_fitted_deaths']
+    
     latest_data_date = pd.Timestamp(df['latest_data_date'].iloc[0])
     mask = (proj_df.index>latest_data_date)
     plot_df.at[mask,'model_new_cases']= proj_df.loc[mask,'new_cases']
