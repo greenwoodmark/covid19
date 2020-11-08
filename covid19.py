@@ -888,11 +888,14 @@ def analyse_country(selected_country,
                                                         project_new_cases_indicator=True,
                                                         ultsurvivedate=ultsurvivedate)
         
-    #======================  show the mid projection
-    plot_df = proj_df[['model_new_deaths']]
+
     #override 'model_new_deaths' with 'past_model_fitted_deaths' to show historical goodness-of-fit
     latest_data_date = pd.Timestamp(proj_df['latest_data_date'].iloc[0])
-    overwrite_mask = plot_df.index<latest_data_date
+    overwrite_mask = proj_df.index<latest_data_date
+    proj_df.at[overwrite_mask,'model_new_deaths']=proj_df.loc[overwrite_mask,'past_model_fitted_deaths']
+
+    #======================  show the mid projection
+    plot_df = proj_df[['model_new_deaths']]
     plot_df.at[overwrite_mask,'model_new_deaths']=proj_df.loc[overwrite_mask,'past_model_fitted_deaths']
     
     latest_data_date = pd.Timestamp(df['latest_data_date'].iloc[0])
