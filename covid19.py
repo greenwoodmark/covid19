@@ -500,11 +500,15 @@ def create_projection_df(params,
     df['deaths']=df['deaths'].fillna(method='ffill')
 
     #100% survival by ultsurvivedate, prorated to last day in df
-    improvement_ratio = (100.0/(pd.Timestamp(ultsurvivedate)-df.index[-1]).days)        
-    df.at[df.index[-1],'s'] = lastsurvivalrate + improvement_ratio*(1-lastsurvivalrate)
+    latest_data_date = pd.Timestamp(df['latest_data_date'].iloc[0])
+    days_calc = (pd.Timestamp(ultsurvivedate)-pd.Timestamp(latest_data_date)).days
+    improvement_ratio = (100/days_calc)        #(100 days of projected new cases)
+    survival_rate_improvement = (1- lastsurvivalrate)
+    df.at[df.index[-1],'s'] = lastsurvivalrate + improvement_ratio * survival_rate_improvement
     df['s'] = df['s'].interpolate('linear')
-    #2020-09-27: the survival rate should not exceed 99.99%
+    #the survival rate should not exceed 99.99%
     df['s'] = df['s'].apply(lambda x: min(0.9999,x))    
+
     df = df.fillna(0.0)
         
     days_limit = df.index.shape[0]  #we limit this to prevent the fitting taking too long
@@ -523,7 +527,6 @@ def create_projection_df(params,
         df['new_cases_rate_projected'] = np.nan
         df.at[mask,'new_cases_rate_projected'] = np.exp(new_cases_proj.reshape((-1,1)))
         #apply these rates to last published accum cases and note under new_cases column
-        latest_data_date = pd.Timestamp(df['latest_data_date'].iloc[0])
         mask = (df.index>latest_data_date)
         latest_cases = df.loc[~mask,'cases'].iloc[-1] 
         new_cases_Series = df.loc[mask,'new_cases']
@@ -813,14 +816,14 @@ def analyse_country(selected_country,
     #======================
 
 
-    #====================== evolution of fitted survival rates, s, last 180 days
+    #====================== evolution of fitted survival rates, s
     survivalrate_Series = a + b * np.arange(-1*df.shape[0]+1,1)
     survivalrate_Series = survivalrate_Series*100 #in percent
    
     sdf = pd.DataFrame(survivalrate_Series, columns=['s'], index=df.index)
-    ax = sdf[['s']].tail(180).plot(
+    ax = sdf[['s']].plot(
             title='fitted survival rate, '+selected_country+' (trends to zero by '+ultsurvivedate+')',
-            ylim=(50,100), 
+            ylim=(70,100), 
             figsize=(6,4))
     import matplotlib.ticker as mtick
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
@@ -946,8 +949,8 @@ def analyse_country(selected_country,
     proj_df['model_new_deaths'] *=  proj_df['seas_multiplier'] 
     
 
-    if (median_beta<0.03):
-        #======================  show confidence bounds only if case growth rate<0
+    if (median_beta<0.02):
+        #======================  show confidence bounds only if case growth rate contained
         #90% confidence bounds assuming range between 5th and 95th percentile of residuals
         #plot confidence intervals from when model_new_deaths exceed 5% of max deaths to date
         #(this negates the need to vary the threshold by size of country)
