@@ -581,14 +581,16 @@ def find_median_halflife_days(new_cases_df, HLD_list):
     new_cases_df_MA['new_cases_rate'] = new_cases_df_MA['new_cases_rate'].fillna(0.0)
 
     for HLD in HLD_list:
-        new_cases_df_MA,k,beta = project_new_cases(new_cases_df_MA, halflife_days = HLD)
-        fit_dict[HLD]={'k': k, 'beta': beta}
-    beta_list = [fit_dict[x]['beta'] for x in HLD_list]
-    median_beta = np.median(beta_list)
-    median_HLD = [k for k in fit_dict.keys() if abs(fit_dict[k]['beta']-median_beta)<1e-5]
-    median_HLD = median_HLD[0]
-    median_halflife_days = median_HLD
-
+        _,k,beta = project_new_cases(new_cases_df_MA, halflife_days = HLD)
+        if (not np.isnan(k) and not np.isnan(beta)):
+            fit_dict[HLD]={'k': k, 'beta': beta}
+    
+    k_beta_df = pd.DataFrame.from_dict(fit_dict, orient='index')
+    
+    try:
+        median_halflife_days = k_beta_df.loc[ k_beta_df['beta']==k_beta_df['beta'].median()].index[0]
+    except:
+        median_halflife_days = 7
     return median_halflife_days, fit_dict
 
 #---------------------------------------------------------------------------------
@@ -849,7 +851,7 @@ def analyse_country(selected_country,
     mask = (new_cases_df['new_cases'].cumsum()>=100)
     new_cases_df = new_cases_df.loc[mask]
     HLD_list = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-    median_HLD, fit_dict = find_median_halflife_days(new_cases_df, HLD_list = HLD_list)
+    median_HLD, fit_dict = find_median_halflife_days(new_cases_df.copy(), HLD_list = HLD_list)
     
     median_beta = fit_dict[median_HLD]['beta']
 
@@ -1142,3 +1144,4 @@ if __name__ == "__main__":
     country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
     country_list +=['Brazil','Germany','France','Japan','South Africa']
     main(country_list, multiprocess_flag=True, show_chart_plots=False)
+    
