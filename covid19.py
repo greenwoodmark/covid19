@@ -69,7 +69,7 @@ def create_new_archive_last_dir():
     import stat
     today_str = dt.datetime.now().strftime('%Y%m%d')
 
-    for n in range(1,5):
+    for n in range(1,10):
         try:
             ydatetime = dt.datetime.now() - dt.timedelta(days=n)
             yday_str = ydatetime.strftime('%Y%m%d')
