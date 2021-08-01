@@ -466,7 +466,7 @@ def project_new_cases(new_cases_df,
 def create_projection_df(params, 
                          df, 
                          project_new_cases_indicator=0, 
-                         ultsurvivedate='2021-10-01'):
+                         ultsurvivedate='2022-01-01'):
     """
     adds to DataFrame df the negative binomial model deaths 
     (used to plot model projection for last set of parameters, params)
@@ -734,7 +734,7 @@ def investigate_seasonality(selected_country,
     
 #---------------------------------------------------------------------------------
 def analyse_country(selected_country,
-                    ultsurvivedate='2021-10-01',
+                    ultsurvivedate='2022-01-01',
                     show_chart_plots=True):
     """
     plots the following for string selected_country...
