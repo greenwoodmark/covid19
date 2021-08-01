@@ -2,6 +2,9 @@
 """
 module to support COVID19.ipynb notebook to fit negative binomial model to
 Johns Hopkins COVID-19 cases and deaths data by country
+
+2021-08-01: ultsurvivedate increased to '2022-01-01' (from '2021-10-01') since vaccination rates tailing off
+
 """
 
 import pandas as pd
