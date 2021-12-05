@@ -4,6 +4,7 @@ module to support COVID19.ipynb notebook to fit negative binomial model to
 Johns Hopkins COVID-19 cases and deaths data by country
 
 2021-08-01: ultsurvivedate increased to '2022-01-01' (from '2021-10-01') since vaccination rates tailing off
+2021-12-05: ultsurvivedate increased to '2022-12-01' (from '2022-01-01') since variants emerging
 
 """
 
@@ -469,7 +470,7 @@ def project_new_cases(new_cases_df,
 def create_projection_df(params, 
                          df, 
                          project_new_cases_indicator=0, 
-                         ultsurvivedate='2022-01-01'):
+                         ultsurvivedate='2022-12-31'):
     """
     adds to DataFrame df the negative binomial model deaths 
     (used to plot model projection for last set of parameters, params)
@@ -737,7 +738,7 @@ def investigate_seasonality(selected_country,
     
 #---------------------------------------------------------------------------------
 def analyse_country(selected_country,
-                    ultsurvivedate='2022-01-01',
+                    ultsurvivedate='2022-12-31',
                     show_chart_plots=True):
     """
     plots the following for string selected_country...
