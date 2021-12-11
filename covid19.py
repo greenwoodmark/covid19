@@ -1106,9 +1106,9 @@ def main(country_list,
             except:
                 print('investigate_seasonality() failed for',selected_country) 
     #====================== plot evolution of beta parameters across countries
-    country_list = ['United Kingdom','Italy','Spain','US','Sweden','Australia']
-
-    beta_n_days = 130
+    country_list = ['United Kingdom','Italy','Spain','US','Sweden'] #,'Australia']
+    #Australia removed after bad data caused chart to shift back on 11dec2021
+    beta_n_days = 365
     
     #first check beta threshold at which new cases stay constant in absolute terms
     #(this is the R_0=1 line)
